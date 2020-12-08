@@ -70,6 +70,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
         if (isQigsawBuild) {
             android.registerTransform(resourcesLoaderTransform)
         }
+        //配置完了以后，有一个重要的回调
         project.afterEvaluate {
             if (!AGPCompat.isAapt2EnabledCompat(project)) {
                 throw new GradleException('Qigsaw Error: AAPT2 required')
@@ -83,6 +84,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
             dynamicFeatures.each {
                 Project splitProject = project.rootProject.project(it)
                 String classPath = "${splitProject.group}:${splitProject.name}:${splitProject.version}"
+                println("QigsawAppBasePlugin:dynamicFeatures:$splitProject.name:$classPath")
                 splitProjectClassPaths.add(classPath)
                 dynamicFeaturesNames.add(splitProject.name)
             }
@@ -93,12 +95,16 @@ class QigsawAppBasePlugin extends QigsawPlugin {
                 if (baseVariant.versionName == null || baseVariant.applicationId == null) {
                     throw new GradleException("versionName and applicationId must be set in ${project.name}/build.gradle ")
                 }
+                //versionName+当前git的最后一个commitid
                 String qigsawId = createQigsawId(project, baseVariant.versionName)
+                //versionName_${qigsawSplit.splitInfoVersion}
                 String completeSplitInfoVersion = jointCompleteSplitInfoVersion(project, baseVariant.versionName)
+                //获取project中productFlavors下对应的Application的ndk.abiFilters,和defaultConfig.ndk.abiFilters
                 Set<String> baseAbiFilters = getAbiFilters(project, baseVariant)
                 ApkSigner apkSigner = new ApkSigner(project, baseVariant)
 
                 Task processManifest = AGPCompat.getProcessManifestTask(project, baseVariant.name.capitalize())
+                //println("QigsawAppBasePlugin:android.applicationVariants.all:$processManifest")
                 Task mergeAssets = AGPCompat.getMergeAssetsTask(project, baseVariant.name.capitalize())
                 Task packageApp = AGPCompat.getPackageTask(project, baseVariant.name.capitalize())
                 Task baseAssemble = AGPCompat.getAssemble(baseVariant)
@@ -168,6 +174,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
                 List<File> baseApkFiles = new ArrayList<>()
                 baseVariant.outputs.each {
                     baseApkFiles.add(it.outputFile)
+                    println("QigsawAppBasePlugin:baseVariant.outputs:$it.outputFile")
                 }
                 QigsawInstallTask qigsawInstall = project.tasks.create("qigsawInstall${baseVariant.name.capitalize()}", QigsawInstallTask)
                 qigsawInstall.variantData = baseVariant.variantData
@@ -318,14 +325,17 @@ class QigsawAppBasePlugin extends QigsawPlugin {
                         }
                     }
                 } else {
+                    //将feature项目的androidManifest.xml文件拷贝到Users/tanzx/AndroidStudioWorkSpace/GitHub/Qigsaw/app/build/intermediates/qigsaw/split-outputs/manifests/debug
                     dynamicFeatures.each { String dynamicFeature ->
                         Project splitProject = project.rootProject.project(dynamicFeature)
                         ProcessTaskDependenciesBetweenBaseAndSplits taskDependenciesProcessor = new ProcessTaskDependenciesBetweenBaseAndSplits()
+                        //该feature是否配置完成，目前这个时候都是false
                         boolean isProjectEvaluated
                         try {
                             splitProject.extensions.android
                             isProjectEvaluated = true
                         } catch (Throwable ignored) {
+                            println("tanzhenxing:error:$splitProject:$ignored")
                             isProjectEvaluated = false
                         }
                         if (isProjectEvaluated) {
@@ -349,6 +359,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
         }
     }
 
+    //将feature项目的androidManifest.xml文件拷贝到Users/tanzx/AndroidStudioWorkSpace/GitHub/Qigsaw/app/build/intermediates/qigsaw/split-outputs/manifests/debug
     static class ProcessTaskDependenciesBetweenBaseAndSplits implements Runnable {
 
         ApplicationVariant baseVariant
@@ -408,10 +419,12 @@ class QigsawAppBasePlugin extends QigsawPlugin {
         @Override
         protected void onTargetVariantFound(ApplicationVariant splitVariant, Task copySplitManifest) {
             qigsawProcessManifest.dependsOn copySplitManifest
+            //ApplicationVersionName
             String versionName = splitVariant.mergedFlavor.versionName
             if (versionName == null) {
                 throw new GradleException("Qigsaw Error:versionName must be set in ${splitProject.name}/build.gradle!")
             }
+            //println("onTargetVariantFound:$versionName")
             Set<String> splitAbiFilters = getAbiFilters(splitProject, splitVariant)
             if (!baseAbiFilters.isEmpty() && !baseAbiFilters.containsAll(splitAbiFilters)) {
                 throw new GradleException("abiFilters config in project ${splitProject.name} must be less than base project.")
@@ -421,6 +434,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
             splitVariant.outputs.each {
                 splitApks.add(it.outputFile)
             }
+            //ApplicationVersionName@ApplicationVersionCode
             String splitVersion = versionName + "@" + splitVariant.mergedFlavor.versionCode
             int minApiLevel = splitVariant.mergedFlavor.minSdkVersion.apiLevel
             Set<String> splitProjectDependencies = new HashSet<>()
@@ -451,10 +465,12 @@ class QigsawAppBasePlugin extends QigsawPlugin {
         }
     }
 
+    //versionName_${qigsawSplit.splitInfoVersion}
     static String jointCompleteSplitInfoVersion(Project project, String versionName) {
         return versionName + "_" + QigsawSplitExtensionHelper.getSplitInfoVersion(project)
     }
 
+    //versionName+当前git的最后一个commitid
     static String createQigsawId(Project project, String versionName) {
         try {
             String gitRev = 'git rev-parse --short HEAD'.execute(null, project.rootDir).text.trim()
@@ -467,6 +483,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
         }
     }
 
+    //获取project中productFlavors下对应的Application的ndk.abiFilters,和defaultConfig.ndk.abiFilters
     static Set<String> getAbiFilters(Project project, def variant) {
         Set<String> mergedAbiFilters = new HashSet<>(0)
         if (project.extensions.android.productFlavors != null) {
@@ -493,6 +510,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
         }
     }
 
+    //获取tinker的oldApk或者qigsaw的oldApk
     static File getOldApkCompat(Project project) {
         File oldApk = TinkerHelper.getOldApkFile(project)
         if (oldApk == null) {

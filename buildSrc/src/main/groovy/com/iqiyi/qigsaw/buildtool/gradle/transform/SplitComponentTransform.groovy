@@ -34,7 +34,14 @@ import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
-
+//com.iqiyi.android.qigsaw.core.extension.ComponentInfo
+//public class ComponentInfo {
+//    public static final String native_ACTIVITIES = "com.iqiyi.qigsaw.sample.ccode.NativeSampleActivity";
+//    public static final String java_ACTIVITIES = "com.iqiyi.qigsaw.sample.java.JavaSampleActivity";
+//    public static final String java_APPLICATION = "com.iqiyi.qigsaw.sample.java.JavaSampleApplication";
+//}
+//$ContentProviderName_Decorated_$featureName继承SplitContentProvider
+//public class JavaContentProvider_Decorated_java extends SplitContentProvider {}
 class SplitComponentTransform extends SimpleClassCreatorTransform {
 
     static final String NAME = "processSplitComponent"
@@ -85,6 +92,7 @@ class SplitComponentTransform extends SimpleClassCreatorTransform {
         }
         Map<String, Set> addFieldMap = new HashMap<>()
         dynamicFeatureNames.each { String name ->
+            //println("tanzhenxing:SplitComponentTransform:$name")
             File splitManifest = new File(splitManifestDir, name + SdkConstants.DOT_XML)
             if (!splitManifest.exists()) {
                 throw new GradleException("Project ${name} manifest file ${splitManifest.absolutePath} is not found!")
@@ -122,6 +130,7 @@ class SplitComponentTransform extends SimpleClassCreatorTransform {
             if (value.size() > 0) {
                 String name = entry.getKey()
                 if (name.endsWith("APPLICATION")) {
+                    //为什么value.getAt(0)).visitEnd?
                     cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL + Opcodes.ACC_STATIC,
                             name, "Ljava/lang/String;", null, value.getAt(0)).visitEnd()
                 } else if (name.endsWith("PROVIDERS")) {

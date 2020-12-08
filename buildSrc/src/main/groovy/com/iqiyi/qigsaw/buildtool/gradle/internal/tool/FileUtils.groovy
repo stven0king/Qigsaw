@@ -86,6 +86,8 @@ class FileUtils {
         try {
             Gson gson = new Gson()
             String splitDetailsStr = gson.toJson(typeClass)
+            //println("createFileForTypeClass:des=$dest")
+            //println("createFileForTypeClass:$splitDetailsStr")
             dest.createNewFile()
             BufferedOutputStream osm = new BufferedOutputStream(new FileOutputStream(dest))
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(osm))

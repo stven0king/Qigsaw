@@ -33,7 +33,8 @@ import org.objectweb.asm.Opcodes
 import static org.objectweb.asm.Opcodes.ALOAD
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL
 import static org.objectweb.asm.Opcodes.INVOKESTATIC
-
+//将activity的getResources方法重写
+//SplitInstallHelper.loadResources(this, super.getResources());
 class SplitActivityWeaver implements SplitComponentWeaver {
 
     @Override

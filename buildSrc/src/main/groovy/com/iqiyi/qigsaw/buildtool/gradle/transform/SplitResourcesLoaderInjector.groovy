@@ -73,6 +73,7 @@ class SplitResourcesLoaderInjector {
                 this.waitableExecutor.execute {
                     String className = file.absolutePath.substring(outputDir.absolutePath.length() + 1, file.absolutePath.length() - SdkConstants.DOT_CLASS.length())
                             .replaceAll(Matcher.quoteReplacement(File.separator), '.')
+                    //println("SplitResourcesLoaderInjector:$className")
                     byte[] bytes = injectClass(path, className)
                     if (bytes != null) {
                         Files.write(path, bytes, StandardOpenOption.WRITE)
@@ -98,6 +99,7 @@ class SplitResourcesLoaderInjector {
                         return
                     }
                     String className = pathString.replaceAll("/", '.').replace(SdkConstants.DOT_CLASS, "")
+                    //println("SplitResourcesLoaderInjector:$className")
                     byte[] bytes = injectClass(path, className)
                     if (bytes != null) {
                         Files.write(path, bytes, StandardOpenOption.WRITE)
@@ -115,6 +117,7 @@ class SplitResourcesLoaderInjector {
         byte[] ret = null
         if (isActivity(className)) {
             SplitLogger.w("Inject activity " + className)
+            SplitLogger.w("Inject activity path " + path)
             ret = new SplitActivityWeaver().weave(path.newInputStream())
         } else if (isService(className)) {
             SplitLogger.w("Inject service " + className)

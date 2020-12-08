@@ -93,7 +93,9 @@ class ProcessSplitApkTask extends DefaultTask {
         if (unzipSplitApkDir.exists()) {
             FileUtils.deleteDir(unzipSplitApkDir)
         }
+        println("ProcessSplitApkTask:unzipSplitApkDir=$unzipSplitApkDir")
         File sourceSplitApk = splitApks[0]
+        println("ProcessSplitApkTask:sourceSplitApk=$sourceSplitApk")
         HashMap<String, Integer> compressData = ZipUtils.unzipApk(sourceSplitApk, unzipSplitApkDir)
         Set<String> supportedABIs = new HashSet<>()
         File splitLibsDir = new File(unzipSplitApkDir, "lib")
@@ -102,6 +104,7 @@ class ProcessSplitApkTask extends DefaultTask {
                 @Override
                 boolean accept(File file) {
                     supportedABIs.add(file.name)
+                    println("ProcessSplitApkTask:supportedABIs=$file.name")
                     return false
                 }
             })
@@ -115,6 +118,9 @@ class ProcessSplitApkTask extends DefaultTask {
             File binaryAbiApk = new File(tmpDir, project.name + "-${abi}-binary" + SdkConstants.DOT_ANDROID_PACKAGE)
             File configAndroidManifest = new File(tmpDir, SdkConstants.ANDROID_MANIFEST_XML)
             createSplitConfigApkAndroidManifest(project.name, abi, configAndroidManifest)
+            println("ProcessSplitApkTask:protoAbiApk=$protoAbiApk")
+            println("ProcessSplitApkTask:binaryAbiApk=:$binaryAbiApk")
+            println("ProcessSplitApkTask:configAndroidManifest=$configAndroidManifest")
             Collection<File> resFiles = new ArrayList<>()
             resFiles.add(new File(splitLibsDir, abi))
             resFiles.add(configAndroidManifest)
@@ -124,6 +130,7 @@ class ProcessSplitApkTask extends DefaultTask {
             if (signedAbiApk.exists()) {
                 signedAbiApk.delete()
             }
+            println("ProcessSplitApkTask:signedAbiApk=$signedAbiApk")
             apkSigner.signApkIfNeed(binaryAbiApk, signedAbiApk)
             SplitInfo.SplitApkData configApkData = new SplitInfo.SplitApkData()
             configApkData.abi = abi
@@ -159,6 +166,7 @@ class ProcessSplitApkTask extends DefaultTask {
             splitInfoFile.delete()
         }
         SplitInfo info = createSplitInfo(apkDataList, libDataList, unzipSplitApkDir)
+        //生成split的json配置文件
         FileUtils.createFileForTypeClass(info, splitInfoFile)
         FileUtils.deleteDir(tmpDir)
     }
@@ -177,7 +185,13 @@ class ProcessSplitApkTask extends DefaultTask {
             it.write(androidManifest.manifestRoot.proto.toByteArray())
         }
     }
-
+    /**
+     *
+     * @param apkDataList apk数据
+     * @param libDataList apk中的lib数据
+     * @param unzipSplitApkDir 解压之后的apk数据
+     * @return
+     */
     SplitInfo createSplitInfo(List<SplitInfo.SplitApkData> apkDataList, List<SplitInfo.SplitLibData> libDataList, File unzipSplitApkDir) {
         Set<String> dependencies = new HashSet<>()
         splitProjectDependencies.each { String name ->
@@ -234,6 +248,29 @@ class ProcessSplitApkTask extends DefaultTask {
         return splitInfo
     }
 
+    //遍历解压之后的apk文件，找到lib目录生成libData（SplitLibData）
+    //"libData": [
+    //{
+    //    "abi": "x86",
+    //    "jniLibs": [
+    //        {
+    //            "name": "libhello-jni.so",
+    //            "md5": "b41ba6efa19ec7367b0440dbbea266f5",
+    //            "size": 5564
+    //        }
+    //]
+    //},
+    //{
+    //    "abi": "arm64-v8a",
+    //    "jniLibs": [
+    //        {
+    //            "name": "libhello-jni.so",
+    //            "md5": "2938d8b40825e82715422dbdba479e4f",
+    //            "size": 5896
+    //        }
+    //]
+    //}
+    //]
     static List<SplitInfo.SplitLibData> createSplitLibInfo(File unzipSplitApkDir) {
         List<SplitInfo.SplitLibData> nativeLibraries = new ArrayList<>(0)
         File[] files = unzipSplitApkDir.listFiles()

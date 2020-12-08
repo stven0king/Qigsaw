@@ -42,6 +42,7 @@ class ExtractTargetFilesFromOldApk extends DefaultTask {
 
     @TaskAction
     void extractTargetFiles() {
+        println("ExtractTargetFilesFromOldApk:$oldApk:$targetFilesExtractedDir")
         if (targetFilesExtractedDir.exists()) {
             FileUtils.deleteDir(targetFilesExtractedDir)
         }

@@ -95,15 +95,19 @@ class CreateSplitDetailsFileTask extends ProcessOldOutputsBaseTask {
         if (splitDetailsFile.exists()) {
             splitDetailsFile.delete()
         }
+        println("CreateSplitDetailsFileTask:$splitDetailsFile")
         if (updateRecordFile.exists()) {
             updateRecordFile.delete()
         }
+        println("CreateSplitDetailsFileTask:$updateRecordFile")
         if (baseAppCpuAbiListFile.exists()) {
             baseAppCpuAbiListFile.delete()
         }
+        println("CreateSplitDetailsFileTask:$baseAppCpuAbiListFile")
         if (qigsawMergedAssetsDir.exists()) {
             FileUtils.deleteDir(qigsawMergedAssetsDir)
         }
+        println("CreateSplitDetailsFileTask:$qigsawMergedAssetsDir")
         qigsawMergedAssetsDir.mkdirs()
         List<SplitInfo> splitInfoList = new ArrayList<>()
         dynamicFeaturesNames.each {

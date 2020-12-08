@@ -89,6 +89,7 @@ class SplitResourcesLoaderTransform extends Transform {
         if (isBaseModule) {
             return super.getSecondaryFiles()
         }
+        //合并Application的manifests
         FileCollection collection = project.files('build/intermediates/merged_manifests')
         return ImmutableSet.of(SecondaryFile.nonIncremental(collection))
     }
@@ -118,6 +119,7 @@ class SplitResourcesLoaderTransform extends Transform {
         } else {
             Task processManifest = AGPCompat.getProcessManifestTask(project, transformInvocation.context.variantName.capitalize())
             File mergedManifest = AGPCompat.getMergedManifestFileCompat(processManifest)
+            //println("SplitResourcesLoaderTransform:mergedManifest:$mergedManifest")
             ManifestReader manifestReader = new ManifestReader(mergedManifest)
             Set<String> activities = manifestReader.readActivityNames()
             Set<String> services = manifestReader.readServiceNames()

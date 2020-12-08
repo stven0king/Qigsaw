@@ -33,6 +33,15 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
+//创建com.iqiyi.android.qigsaw.core.splitlib(project.name)SplitLibraryLoader.java
+//public class nativeSplitLibraryLoader {
+//    public nativeSplitLibraryLoader() {
+//    }
+//
+//    public void loadSplitLibrary(String var1) {
+//        System.loadLibrary(var1);
+//    }
+//}
 class SplitLibraryLoaderTransform extends SimpleClassCreatorTransform {
 
     final Project project
@@ -66,6 +75,7 @@ class SplitLibraryLoaderTransform extends SimpleClassCreatorTransform {
         super.transform(transformInvocation)
         transformInvocation.getOutputProvider().deleteAll()
         def dest = prepareToCreateClass(transformInvocation)
+        //println("SplitLibraryLoaderTransform:transform:$dest")
         createSimpleClass(dest, "com.iqiyi.android.qigsaw.core.splitlib." + project.name + "SplitLibraryLoader",
                 "java.lang.Object", new SimpleClassCreatorTransform.OnVisitListener() {
             @Override

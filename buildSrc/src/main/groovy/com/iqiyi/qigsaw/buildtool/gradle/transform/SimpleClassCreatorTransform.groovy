@@ -65,6 +65,7 @@ abstract class SimpleClassCreatorTransform extends Transform {
     }
 
     static void createSimpleClass(def dest, String className, String superName, OnVisitListener listener) {
+        //println("createSimpleClass:$dest:$className")
         ClassWriter cw = new ClassWriter(0)
         String folderName = className.replace(".", File.separator)
         File classFile = new File(dest + File.separator + folderName + ".class")
