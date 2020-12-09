@@ -116,19 +116,24 @@ class QigsawAppBasePlugin extends QigsawPlugin {
                 File bundleManifestDir = AGPCompat.getBundleManifestDirCompat(processManifest, versionAGP)
                 File bundleManifestFile = bundleManifestDir == null ? null : new File(bundleManifestDir, SdkConstants.ANDROID_MANIFEST_XML)
                 File mergedManifestFile = AGPCompat.getMergedManifestFileCompat(processManifest)
+                //app/build/intermediates/merged_assets/debug/out/
                 File mergedAssetsDir = new File(AGPCompat.getMergedAssetsBaseDirCompat(mergeAssets))
+                //app/build/outputs/apk/debug
                 File packageAppDir = AGPCompat.getPackageApplicationDirCompat(packageApp)
+                //app/build/intermediates/transforms/mergeJniLibs/debug
                 File mergedJniLibsBaseDir = AGPCompat.getMergeJniLibsBaseDirCompat(mergeJniLibs)
-
+                //build/intermediates/qigsaw/old-apk/target-files/{debug/release}
                 File targetFilesExtractedDir = project.file("${project.buildDir}/${AndroidProject.FD_INTERMEDIATES}/${QIGSAW}/old-apk/target-files/${baseVariant.name}")
                 File qigsawConfigDir = project.file("${project.buildDir}/${AndroidProject.FD_INTERMEDIATES}/${QIGSAW}/qigsaw-config/${baseVariant.name}")
                 File splitApksDir = project.file("${project.buildDir}/${AndroidProject.FD_INTERMEDIATES}/${QIGSAW}/split-outputs/apks/${baseVariant.name}")
                 File unzipSplitApkBaseDir = project.file("${project.buildDir}/${AndroidProject.FD_INTERMEDIATES}/${QIGSAW}/split-outputs/unzip/${baseVariant.name}")
                 File splitManifestDir = new File(splitManifestParentDir, baseVariant.name)
+                //build/intermediates/qigsaw/split-outputs/split-info/debug(release)
                 File splitInfoDir = project.file("${project.buildDir}/${AndroidProject.FD_INTERMEDIATES}/${QIGSAW}/split-outputs/split-info/${baseVariant.name}")
                 File qigsawProguardDir = project.file("${project.buildDir}/${AndroidProject.FD_INTERMEDIATES}/${QIGSAW}/old-outputs/mapping/${baseVariant.name}")
                 File splitDetailsDir = project.file("${project.buildDir}/${AndroidProject.FD_INTERMEDIATES}/${QIGSAW}/split-details/${baseVariant.name}")
                 File baseApksDir = project.file("${project.buildDir}/${AndroidProject.FD_INTERMEDIATES}/${QIGSAW}/base-outputs/apks/${baseVariant.name}")
+                //build/intermediates/qigsaw/base-outputs/unzip/debug/
                 File unzipBaseApkDir = project.file("${project.buildDir}/${AndroidProject.FD_INTERMEDIATES}/${QIGSAW}/base-outputs/unzip/${baseVariant.name}/${project.name}")
 
                 File splitDetailsFile = new File(splitDetailsDir, "qigsaw" + "_" + completeSplitInfoVersion + SdkConstants.DOT_JSON)
@@ -359,7 +364,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
         }
     }
 
-    //将feature项目的androidManifest.xml文件拷贝到Users/tanzx/AndroidStudioWorkSpace/GitHub/Qigsaw/app/build/intermediates/qigsaw/split-outputs/manifests/debug
+    //将feature项目的androidManifest.xml文件拷贝到Qigsaw/app/build/intermediates/qigsaw/split-outputs/manifests/debug
     static class ProcessTaskDependenciesBetweenBaseAndSplits implements Runnable {
 
         ApplicationVariant baseVariant

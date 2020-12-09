@@ -1,0 +1,16 @@
+.idea/
+*.iml
+*.settings
+*.project
+*.classpath
+*.DS_Store
+*/*.iml
+build/
+*/build/
+.gradle/
+local.properties
+*/.DS_Store
+*/src/.DS_Store
+.gitbranchname.txt
+.gittagname.txt
+.externalNativeBuild

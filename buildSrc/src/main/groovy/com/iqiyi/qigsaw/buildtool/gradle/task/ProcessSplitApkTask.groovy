@@ -41,6 +41,9 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * 用于生成 split_apk
+ */
 class ProcessSplitApkTask extends DefaultTask {
 
     ApkSigner apkSigner
@@ -89,6 +92,7 @@ class ProcessSplitApkTask extends DefaultTask {
         if (splitApks.size() > 1) {
             throw new GradleException("Qigsaw Error: Qigsaw don't support multi-apks.")
         }
+        //解压apk
         File unzipSplitApkDir = new File(unzipSplitApkBaseDir, project.name)
         if (unzipSplitApkDir.exists()) {
             FileUtils.deleteDir(unzipSplitApkDir)
@@ -97,7 +101,9 @@ class ProcessSplitApkTask extends DefaultTask {
         File sourceSplitApk = splitApks[0]
         println("ProcessSplitApkTask:sourceSplitApk=$sourceSplitApk")
         HashMap<String, Integer> compressData = ZipUtils.unzipApk(sourceSplitApk, unzipSplitApkDir)
+        //遍历支持的 abi
         Set<String> supportedABIs = new HashSet<>()
+        // 拷贝所有 so
         File splitLibsDir = new File(unzipSplitApkDir, "lib")
         if (splitLibsDir.exists()) {
             splitLibsDir.listFiles(new FileFilter() {
@@ -110,28 +116,40 @@ class ProcessSplitApkTask extends DefaultTask {
             })
         }
         List<SplitInfo.SplitApkData> apkDataList = new ArrayList<>()
+        //二次打包
         Aapt2Command aapt2 = Aapt2Command.createFromExecutablePath(aapt2File.toPath())
         File tmpDir = new File(splitApksDir, "tmp/${project.name}")
         tmpDir.mkdirs()
+        //主包支持的文件夹
         supportedABIs.each { String abi ->
             File protoAbiApk = new File(tmpDir, project.name + "-${abi}-proto" + SdkConstants.DOT_ANDROID_PACKAGE)
             File binaryAbiApk = new File(tmpDir, project.name + "-${abi}-binary" + SdkConstants.DOT_ANDROID_PACKAGE)
+            //生成新的manifest(只有支持不同cpu架构的)
             File configAndroidManifest = new File(tmpDir, SdkConstants.ANDROID_MANIFEST_XML)
             createSplitConfigApkAndroidManifest(project.name, abi, configAndroidManifest)
+
+
             println("ProcessSplitApkTask:protoAbiApk=$protoAbiApk")
             println("ProcessSplitApkTask:binaryAbiApk=:$binaryAbiApk")
             println("ProcessSplitApkTask:configAndroidManifest=$configAndroidManifest")
+
+
             Collection<File> resFiles = new ArrayList<>()
             resFiles.add(new File(splitLibsDir, abi))
             resFiles.add(configAndroidManifest)
             ZipUtils.zipFiles(resFiles, unzipSplitApkDir, protoAbiApk, compressData)
+
+            //利用aapt2 工具 将 -proto.apk 利用aapt 工具 写入到 binaryAbiApk中
             aapt2.convertApkProtoToBinary(protoAbiApk.toPath(), binaryAbiApk.toPath())
             File signedAbiApk = new File(splitApksDir, project.name + "-${abi}" + SdkConstants.DOT_ANDROID_PACKAGE)
             if (signedAbiApk.exists()) {
                 signedAbiApk.delete()
             }
+
             println("ProcessSplitApkTask:signedAbiApk=$signedAbiApk")
+            //签名
             apkSigner.signApkIfNeed(binaryAbiApk, signedAbiApk)
+            //Split 配置
             SplitInfo.SplitApkData configApkData = new SplitInfo.SplitApkData()
             configApkData.abi = abi
             configApkData.url = "assets://qigsaw/${project.name}-${abi + SdkConstants.DOT_ZIP}"
@@ -141,16 +159,22 @@ class ProcessSplitApkTask extends DefaultTask {
         }
         //create split master apk
         Collection<File> resFiles = new ArrayList<>()
+        //拷贝所有非 so的内容
         File[] files = unzipSplitApkDir.listFiles(new FileFilter() {
             @Override
             boolean accept(File file) {
+                //遍历解压包中 找到 lib/ 下所有文件
                 return file.name != "lib"
             }
         })
         Collections.addAll(resFiles, files)
+        //未包含so的apk
         File unsignedMasterApk = new File(tmpDir, project.name + "-master-unsigned" + SdkConstants.DOT_ANDROID_PACKAGE)
+        //生成 featurename-master-unsigned.apk
         ZipUtils.zipFiles(resFiles, unzipSplitApkDir, unsignedMasterApk, compressData)
+        //与temp 同级 生成 feature-master.apk
         File signedMasterApk = new File(splitApksDir, project.name + "-master" + SdkConstants.DOT_ANDROID_PACKAGE)
+        //签名apk
         apkSigner.signApkIfNeed(unsignedMasterApk, signedMasterApk)
         SplitInfo.SplitApkData masterApkData = new SplitInfo.SplitApkData()
         masterApkData.abi = "master"
@@ -168,7 +192,8 @@ class ProcessSplitApkTask extends DefaultTask {
         SplitInfo info = createSplitInfo(apkDataList, libDataList, unzipSplitApkDir)
         //生成split的json配置文件
         FileUtils.createFileForTypeClass(info, splitInfoFile)
-        FileUtils.deleteDir(tmpDir)
+        //删除app/build/intermediates/qigsaw/split-outputs/apks/debug/tmp 下面目录
+//        FileUtils.deleteDir(tmpDir)
     }
 
     void createSplitConfigApkAndroidManifest(String splitName, String abi, File androidManifestFile) {
