@@ -26,8 +26,22 @@ package com.iqiyi.qigsaw.buildtool.gradle.extension
 
 import org.gradle.api.Project
 
+
+/**
+ * gradle 下声明的  qigsawSplit {}
+ * 里面的内容
+ */
 class QigsawSplitExtensionHelper {
 
+
+    /**
+     * app/build.gradle
+     * qigsawSplit {
+     * splitInfoVersion
+     * }
+     * @param project
+     * @return
+     */
     static String getSplitInfoVersion(Project project) {
         try {
             return project.extensions.qigsawSplit.splitInfoVersion
@@ -36,6 +50,14 @@ class QigsawSplitExtensionHelper {
         }
     }
 
+    /**
+     * app/build.gradle
+     * qigsawSplit {
+     * oldApk
+     * }
+     * @param project
+     * @return
+     */
     static File getOldApkFile(Project project) {
         try {
             String oldApk = project.extensions.qigsawSplit.oldApk
@@ -51,6 +73,14 @@ class QigsawSplitExtensionHelper {
         return null
     }
 
+    /**
+     * app/build.gradle
+     * qigsawSplit {
+     * releaseSplitApk
+     * }
+     * @param project
+     * @return
+     */
     static boolean isReleaseSplitApk(Project project) {
         try {
             return project.extensions.qigsawSplit.releaseSplitApk
@@ -59,6 +89,14 @@ class QigsawSplitExtensionHelper {
         }
     }
 
+    /**
+     * app/build.gradle
+     * qigsawSplit {
+     * multipleApkForABIs
+     * }
+     * @param project
+     * @return
+     */
     static boolean isMultipleApkForABIs(Project project) {
         try {
             return project.extensions.qigsawSplit.multipleApkForABIs
@@ -113,6 +151,16 @@ class QigsawSplitExtensionHelper {
         return null
     }
 
+    /**
+     * 预埋点 Activity
+     *
+     * app/build.gradle
+     * qigsawSplit {
+     * baseContainerActivities
+     * }
+     * @param project
+     * @return
+     */
     static Set<String> getBaseContainerActivities(Project project) {
         try {
             List<String> value = project.extensions.qigsawSplit.baseContainerActivities

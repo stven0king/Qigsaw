@@ -30,10 +30,16 @@ import org.gradle.api.GradleException
 import org.gradle.api.tasks.InputDirectory
 
 class ProcessOldOutputsBaseTask extends DefaultTask {
-
+    /**
+     * app/build/intermediates/qigsaw/old-apk/target-files/{debug/release}
+     */
     @InputDirectory
     File targetFilesExtractedDir
-
+    /**
+     * 读取app/build/intermediates/qigsaw/old-apk/target-files/{debug/release}/assets/qigsaw/
+     * 下所有的 内容
+     * @return
+     */
     File getOldSplitDetailsFile() {
         File oldSplitDetailsDir = new File(targetFilesExtractedDir, "assets/qigsaw/")
         File oldSplitDetailsFile = null
@@ -41,6 +47,8 @@ class ProcessOldOutputsBaseTask extends DefaultTask {
             File[] files = oldSplitDetailsDir.listFiles(new FileFilter() {
                 @Override
                 boolean accept(File file) {
+                    //已qigsaw 开头 且 已 .json 结尾
+                    //配置文件
                     return file.name.endsWith(SdkConstants.DOT_JSON) && file.name.startsWith("qigsaw")
                 }
             })
@@ -55,6 +63,13 @@ class ProcessOldOutputsBaseTask extends DefaultTask {
         return oldSplitDetailsFile
     }
 
+    /**
+     * 从old-apk 中读取 上一次构建的 feature内容
+     * @param splitName
+     * @param abi
+     * @return
+     * app/build/intermediates/qigsaw/old-apk/target-files/{debug/release}/assets/qigsaw/native-arm64-v8a.zip
+     */
     File getOldSplitApk(String splitName, String abi) {
         return new File(targetFilesExtractedDir, "assets/qigsaw/${splitName}-${abi + SdkConstants.DOT_ZIP}")
     }

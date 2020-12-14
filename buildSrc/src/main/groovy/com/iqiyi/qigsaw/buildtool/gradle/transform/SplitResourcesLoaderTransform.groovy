@@ -44,12 +44,20 @@ import org.apache.commons.io.FileUtils
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 
+/**
+ * 向dynamic-feature构建apk的过程中
+ * 向其继承自Activity,Servive,Receiver的类getResources()方法中注入一段代码
+ * SplitInstallHelper.loadResources(this, super.getResources());
+ *
+ */
 class SplitResourcesLoaderTransform extends Transform {
 
     final static String NAME = "splitResourcesLoader"
 
     Project project
-
+    /**
+     * 是否是壳工程
+     */
     boolean isBaseModule
 
     WaitableExecutor waitableExecutor
@@ -64,26 +72,46 @@ class SplitResourcesLoaderTransform extends Transform {
         this(project, false)
     }
 
+    /**
+     * gradle task name
+     * @return
+     */
     @Override
     String getName() {
         return NAME
     }
 
+    /**
+     * 针对class
+     * @return
+     */
     @Override
     Set<QualifiedContent.ContentType> getInputTypes() {
         return TransformManager.CONTENT_CLASS
     }
 
+    /**
+     * 指定范围
+     * 整个工程
+     * @return
+     */
     @Override
     Set<? super QualifiedContent.Scope> getScopes() {
         return TransformManager.SCOPE_FULL_PROJECT
     }
 
+    /**
+     * 方法指明是否支持增量编译
+     * @return
+     */
     @Override
     boolean isIncremental() {
         return false
     }
-
+    /**
+     * Returns a list of additional file(s) that this Transform needs to run
+     * @return
+     */
     @Override
     Collection<SecondaryFile> getSecondaryFiles() {
         if (isBaseModule) {
@@ -98,6 +126,7 @@ class SplitResourcesLoaderTransform extends Transform {
     Map<String, Object> getParameterInputs() {
         if (isBaseModule) {
             Map<String, Set<String>> baseContainerActivitiesMap = new HashMap<>()
+            //出入插件化埋点activity
             baseContainerActivitiesMap.put("base_container_activities", QigsawSplitExtensionHelper.getBaseContainerActivities(project))
             return baseContainerActivitiesMap
         }
@@ -108,6 +137,7 @@ class SplitResourcesLoaderTransform extends Transform {
     void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException {
         super.transform(transformInvocation)
         long startTime = System.currentTimeMillis()
+        //清空缓存目录
         transformInvocation.getOutputProvider().deleteAll()
         SplitResourcesLoaderInjector resourcesLoaderInjector = null
         if (isBaseModule) {
@@ -117,6 +147,7 @@ class SplitResourcesLoaderTransform extends Transform {
                 resourcesLoaderInjector = new SplitResourcesLoaderInjector(waitableExecutor, baseContainerActivities)
             }
         } else {
+            //读取AndroidManifest.xml 中声明的所有 activity  service revicer 读取出来
             Task processManifest = AGPCompat.getProcessManifestTask(project, transformInvocation.context.variantName.capitalize())
             File mergedManifest = AGPCompat.getMergedManifestFileCompat(processManifest)
             //println("SplitResourcesLoaderTransform:mergedManifest:$mergedManifest")
@@ -124,9 +155,11 @@ class SplitResourcesLoaderTransform extends Transform {
             Set<String> activities = manifestReader.readActivityNames()
             Set<String> services = manifestReader.readServiceNames()
             Set<String> receivers = manifestReader.readReceiverNames()
+            //将声明中的所有组件 转换成注入器
             resourcesLoaderInjector = new SplitResourcesLoaderInjector(waitableExecutor, activities, services, receivers)
         }
         transformInvocation.inputs.each {
+            //所有的源码路径
             Collection<DirectoryInput> directoryInputs = it.directoryInputs
 
             if (directoryInputs != null) {
@@ -138,6 +171,8 @@ class SplitResourcesLoaderTransform extends Transform {
                     }
                 }
             }
+
+            //所有的jar路径
             Collection<JarInput> jarInputs = it.jarInputs
             if (jarInputs != null) {
                 jarInputs.each {

@@ -45,6 +45,9 @@ import org.gradle.util.VersionNumber
 
 import java.util.concurrent.Callable
 
+/**
+ * 开发过程中 Qigsaw 分包的 安装任务
+ */
 class QigsawInstallTask extends DefaultTask {
 
     BaseVariantData variantData

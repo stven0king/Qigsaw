@@ -47,9 +47,14 @@ class SplitComponentTransform extends SimpleClassCreatorTransform {
     static final String NAME = "processSplitComponent"
 
     Project project
-
+    /**
+     * /Users/lizhiqiang/Documents/AndroidProject/demo/QigsawV2/Qigsaw/app/build/intermediates/qigsaw/split-outputs/manifests
+     * 存放所有feature 工程中的  AndroidManifets.xml 中的信息 ， 便于合并资源，在主工程包中占坑
+     */
     File splitManifestParentDir
-
+    /**
+     * 所有配置生效的 dynamicfeature 工程
+     */
     Set<String> dynamicFeatureNames
 
     SplitComponentTransform(Project project) {
@@ -81,32 +86,49 @@ class SplitComponentTransform extends SimpleClassCreatorTransform {
     boolean isIncremental() {
         return false
     }
-
+    /**
+     * 实际执行入口
+     * @param transformInvocation
+     * @throws TransformException
+     * @throws InterruptedException
+     * @throws IOException
+     */
     @Override
     void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException {
         super.transform(transformInvocation)
+        //清空输出路径下所有内容
         transformInvocation.getOutputProvider().deleteAll()
         File splitManifestDir = new File(splitManifestParentDir, transformInvocation.context.variantName.uncapitalize())
         if (!splitManifestDir.exists()) {
             throw new GradleException("${splitManifestDir.absolutePath} is not existing!")
         }
+        //所有feature工程下 声明的四大组件和application 声明的容器
         Map<String, Set> addFieldMap = new HashMap<>()
+        //遍历 application 项目中 声明的所有 feature 项目
         dynamicFeatureNames.each { String name ->
-            //println("tanzhenxing:SplitComponentTransform:$name")
             File splitManifest = new File(splitManifestDir, name + SdkConstants.DOT_XML)
             if (!splitManifest.exists()) {
                 throw new GradleException("Project ${name} manifest file ${splitManifest.absolutePath} is not found!")
             }
+            //遍历所有 AndroidManifest.xml 中的声明数据
             ManifestReader manifestReader = new ManifestReader(splitManifest)
+            //AndroidManifest.xml 中声明的所有activity
             Set<String> activities = manifestReader.readActivityNames()
+            //AndroidManifest.xml 中声明的所有service
             Set<String> services = manifestReader.readServiceNames()
+            //AndroidManifest.xml 中声明的所有Receiver
             Set<String> receivers = manifestReader.readReceiverNames()
+            //AndroidManifest.xml 中声明的所有Provider
             Set<String> providers = manifestReader.readProviderNames()
+            //AndroidManifest.xml 中声明的所有application
             Set<String> applications = new HashSet<>()
+            //feature工程中声明的application名称
             String applicationName = manifestReader.readApplicationName()
             if (applicationName != null && applicationName.length() > 0) {
                 applications.add(applicationName)
             }
+            //native_APPLICATION
+
             addFieldMap.put(name + "_APPLICATION", applications)
             addFieldMap.put(name + "_ACTIVITIES", activities)
             addFieldMap.put(name + "_SERVICES", services)
@@ -114,7 +136,9 @@ class SplitComponentTransform extends SimpleClassCreatorTransform {
             addFieldMap.put(name + "_PROVIDERS", providers)
         }
 
+        //创建临时类生成目录
         def dest = prepareToCreateClass(transformInvocation)
+        //创建类
         createSimpleClass(dest, "com.iqiyi.android.qigsaw.core.extension.ComponentInfo", "java.lang.Object", new SimpleClassCreatorTransform.OnVisitListener() {
 
             @Override
@@ -124,6 +148,12 @@ class SplitComponentTransform extends SimpleClassCreatorTransform {
         })
     }
 
+    /**
+     * 注入代码
+     * @param dest
+     * @param cw
+     * @param addFieldMap
+     */
     static void injectCommonInfo(def dest, ClassWriter cw, Map<String, Set> addFieldMap) {
         addFieldMap.each { entry ->
             Set value = entry.value
@@ -138,6 +168,7 @@ class SplitComponentTransform extends SimpleClassCreatorTransform {
                     for (String providerName : value) {
                         String splitName = name.split("_PROVIDERS")[0]
                         String providerClassName = providerName + "_Decorated_" + splitName
+                        //继承SplitContentProvider  创建每个feature的子类
                         createSimpleClass(dest, providerClassName, "com.iqiyi.android.qigsaw.core.splitload.SplitContentProvider", null)
                     }
                 } else {

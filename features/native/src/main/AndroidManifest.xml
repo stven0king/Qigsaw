@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:dist="http://schemas.android.com/apk/distribution"
     package="com.iqiyi.qigsaw.sample.ccode">
-
+    <!-- onDemand 插件是否需要上传 -->
     <dist:module
         dist:onDemand="true"
         dist:title="@string/module_native">

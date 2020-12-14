@@ -64,6 +64,7 @@ class SplitActivityWeaver implements SplitComponentWeaver {
 
         @Override
         MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+            //修改getResources 方法
             if ("getResources".equals(name)) {
                 needInsert = false
                 return new ChangeOnCreateMethodVisitor(Opcodes.ASM5, cv.visitMethod(access, name, desc, signature, exceptions), superName)
@@ -79,15 +80,21 @@ class SplitActivityWeaver implements SplitComponentWeaver {
             super.visitEnd()
         }
 
+        /**
+         * 注入代码核心方法
+         * @param cw
+         */
         void insertGetResourcesMethod(ClassWriter cw) {
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "getResources", "()Landroid/content/res/Resources;", null, null)
+            //访问局部变量指令
+            mv.visitVarInsn( ALOAD, 0)
             mv.visitVarInsn(ALOAD, 0)
+            //访问方法的指令。 方法指令是调用方法的指令
+            mv.visitMethodInsn( INVOKESPECIAL, superName, "getResources", "()Landroid/content/res/Resources;", false)
+            mv.visitMethodInsn( INVOKESTATIC, CLASS_WOVEN, METHOD_WOVEN, "(Landroid/app/Activity;Landroid/content/res/Resources;)V", false)
             mv.visitVarInsn(ALOAD, 0)
             mv.visitMethodInsn(INVOKESPECIAL, superName, "getResources", "()Landroid/content/res/Resources;", false)
-            mv.visitMethodInsn(INVOKESTATIC, CLASS_WOVEN, METHOD_WOVEN, "(Landroid/app/Activity;Landroid/content/res/Resources;)V", false)
-            mv.visitVarInsn(ALOAD, 0)
-            mv.visitMethodInsn(INVOKESPECIAL, superName, "getResources", "()Landroid/content/res/Resources;", false)
-            mv.visitInsn(ARETURN)
+            mv.visitInsn( ARETURN)
             mv.visitMaxs(2, 1)
             mv.visitEnd()
         }

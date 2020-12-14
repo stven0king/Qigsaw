@@ -41,6 +41,10 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.Pair
 
+/**
+ * 把 feature下 Manifest
+ * app/build/intermediates/qigsaw/split-outputs/manifests/debug/
+ */
 class QigsawProcessManifestTask extends DefaultTask {
 
     final SAXReader saxReader = new SAXReader()
@@ -72,9 +76,17 @@ class QigsawProcessManifestTask extends DefaultTask {
             modifyBaseManifestContent(bundleManifestDoc, bundleManifestFile, splitProviderNodes)
         }
     }
-
+    /**
+     *
+     * 修改provider 的名字修改
+     *
+     * @param document
+     * @param xmlFile
+     * @param splitProviderNodes
+     */
     static void modifyBaseManifestContent(Document document, File xmlFile, List<Pair<String, Node>> splitProviderNodes) {
         Element rootEle = document.getRootElement()
+        //扫描manifest 下的provider  名称 修改为 代理类（）的provider
         List<? extends Node> appProviderNodes = rootEle.selectNodes("//provider")
         if (appProviderNodes != null && !appProviderNodes.empty) {
             if (splitProviderNodes != null && !splitProviderNodes.empty) {

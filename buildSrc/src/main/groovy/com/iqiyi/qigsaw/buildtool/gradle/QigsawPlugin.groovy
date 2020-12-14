@@ -41,8 +41,19 @@ abstract class QigsawPlugin implements Plugin<Project> {
 
     public static final String QIGSAW_INSTALL_TASK_PREFIX = QIGSAW + INSTALL
 
+    /**
+     * 是否集成Qigsaw plugin
+     * @param project
+     * @return
+     * gradle 任务中 包含
+     * qigsawAssemble  /  qigsawInstall
+     * 或者
+     * 声明过  QIGSAW_BUILD 这个变量
+     * 则代表集成过 Qigsaw plugin
+     */
     static boolean isQigsawBuild(Project project) {
         List<String> startTaskNames = project.gradle.startParameter.taskNames
+        //遍历所有task任务
         for (String taskName : startTaskNames) {
             if (taskName.contains(QIGSAW_ASSEMBLE_TASK_PREFIX) || taskName.contains(QIGSAW_INSTALL_TASK_PREFIX)) {
                 return true

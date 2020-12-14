@@ -212,8 +212,8 @@ class ProcessSplitApkTask extends DefaultTask {
     }
     /**
      *
-     * @param apkDataList apk数据
-     * @param libDataList apk中的lib数据
+     * @param apkDataList apk数据 （feature 未包含 so 的内容）
+     * @param libDataList apk中的lib数据 （feature 中 只包含 so 的内容）
      * @param unzipSplitApkDir 解压之后的apk数据
      * @return
      */

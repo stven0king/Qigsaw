@@ -35,7 +35,9 @@ import java.util.regex.Matcher
 class SplitResourcesLoaderInjector {
 
     WaitableExecutor waitableExecutor
-
+    /**
+     * 预埋的 Activity
+     */
     Set<String> activities
 
     Set<String> services
@@ -61,21 +63,31 @@ class SplitResourcesLoaderInjector {
         this.serviceWeaver = new SplitServiceWeaver()
         this.receiverWeaver = new SplitReceiverWeaver()
     }
-
+    /**
+     * 注入内容
+     *
+     * (loadResource)
+     * @param outputDir
+     */
     void injectDir(File outputDir) {
+        //遍历路径下文件
         Files.walk(outputDir.toPath(), Integer.MAX_VALUE).filter {
+            //判断是否是一个文件
             Files.isRegularFile(it)
         }.each { Path path ->
             File file = path.toFile()
             if (file.name.endsWith(SdkConstants.DOT_JAR)) {
+                //以 .jar 结尾
                 injectJar(file)
             } else if (file.name.endsWith(SdkConstants.DOT_CLASS)) {
+                //以 .class
                 this.waitableExecutor.execute {
+                    //线程池运行
                     String className = file.absolutePath.substring(outputDir.absolutePath.length() + 1, file.absolutePath.length() - SdkConstants.DOT_CLASS.length())
                             .replaceAll(Matcher.quoteReplacement(File.separator), '.')
-                    //println("SplitResourcesLoaderInjector:$className")
                     byte[] bytes = injectClass(path, className)
                     if (bytes != null) {
+                        //修改后回写
                         Files.write(path, bytes, StandardOpenOption.WRITE)
                     }
                 }
@@ -83,14 +95,20 @@ class SplitResourcesLoaderInjector {
         }
     }
 
+    /**
+     * 注入jar包内容
+     * @param jar
+     */
     void injectJar(File jar) {
         this.waitableExecutor.execute {
             Map<String, String> zipProperties = ['create': 'false']
+            //定位jar包
             URI zipDisk = URI.create("jar:${jar.toURI().toString()}")
             FileSystem zipFs = null
             try {
                 zipFs = FileSystems.newFileSystem(zipDisk, zipProperties)
                 Path root = zipFs.rootDirectories.iterator().next()
+                //遍历当前jar包目录下所有文件 （jar下的所有内容）
                 Files.walk(root, Integer.MAX_VALUE).filter {
                     Files.isRegularFile(it)
                 }.each { Path path ->
@@ -112,7 +130,13 @@ class SplitResourcesLoaderInjector {
             }
         }
     }
-
+    /**
+     * 注入class 内容
+     * 注入jar 最终也是 注入到 class中
+     * @param path
+     * @param className
+     * @return
+     */
     byte[] injectClass(Path path, String className) {
         byte[] ret = null
         if (isActivity(className)) {

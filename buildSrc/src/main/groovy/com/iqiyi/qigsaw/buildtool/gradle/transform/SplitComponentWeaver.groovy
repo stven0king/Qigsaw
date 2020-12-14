@@ -25,9 +25,13 @@
 package com.iqiyi.qigsaw.buildtool.gradle.transform
 
 interface SplitComponentWeaver {
-
+    /**
+     * 链接目标
+     */
     String CLASS_WOVEN = "com/google/android/play/core/splitinstall/SplitInstallHelper"
-
+    /**
+     * 链接方法
+     */
     String METHOD_WOVEN = "loadResources"
 
     byte[] weave(InputStream inputStream)

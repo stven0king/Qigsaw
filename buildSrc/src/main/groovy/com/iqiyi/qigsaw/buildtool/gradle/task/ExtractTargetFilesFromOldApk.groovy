@@ -31,26 +31,50 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * 将app_debug.apk 解压 将assets/ 目录下所有内容
+ * 释放到app/build/intermediates/qigsaw/old-apk/target-files/debug中
+ * 版本比较时需要
+ *
+ * 依赖 processManifest 先执行
+ *
+ */
 class ExtractTargetFilesFromOldApk extends DefaultTask {
-
+    /**
+     * 默认
+     * app.gradle 中
+     *
+     * qigsawSplit {
+     *    oldApk 配置
+     * }
+     *
+     */
     @InputFile
     @Optional
     File oldApk
-
+    /**
+     * app/build/intermediates/qigsaw/old-apk/target-files/debug
+     */
     @OutputDirectory
     File targetFilesExtractedDir
 
     @TaskAction
     void extractTargetFiles() {
-        println("ExtractTargetFilesFromOldApk:$oldApk:$targetFilesExtractedDir")
         if (targetFilesExtractedDir.exists()) {
+            //清除目录下所有内容
             FileUtils.deleteDir(targetFilesExtractedDir)
         }
+        //创建目录
         targetFilesExtractedDir.mkdirs()
+
         if (oldApk != null) {
+            //转换目录
             project.copy { spec ->
+                //从指定的路径获取apk包
                 spec.from(project.zipTree(oldApk))
+                //删选assets/qigsaw/ 下所有的内容
                 spec.include("assets/qigsaw/**")
+                //app/build/intermediates/qigsaw/old-apk/target-files/debug/assets/qigsaw/
                 spec.into(targetFilesExtractedDir)
             }
         }

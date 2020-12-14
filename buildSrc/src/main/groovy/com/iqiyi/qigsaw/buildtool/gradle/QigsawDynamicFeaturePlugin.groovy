@@ -25,6 +25,7 @@
 package com.iqiyi.qigsaw.buildtool.gradle
 
 import com.android.build.gradle.AppExtension
+import com.iqiyi.qigsaw.buildtool.gradle.internal.tool.SplitLogger
 import com.iqiyi.qigsaw.buildtool.gradle.transform.SplitLibraryLoaderTransform
 import com.iqiyi.qigsaw.buildtool.gradle.transform.SplitResourcesLoaderTransform
 import org.gradle.api.GradleException
@@ -34,6 +35,8 @@ class QigsawDynamicFeaturePlugin extends QigsawPlugin {
 
     @Override
     void apply(Project project) {
+        SplitLogger.e("QigsawDynamicFeaturePlugin apply")
+
         if (!project.getPlugins().hasPlugin("com.android.dynamic-feature")) {
             throw new GradleException("generateQigsawApk: Dynamic-feature plugin required")
         }

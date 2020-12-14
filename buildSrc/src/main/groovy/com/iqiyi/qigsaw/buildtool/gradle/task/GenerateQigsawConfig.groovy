@@ -34,29 +34,69 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * 将old.apk
+ *相关信息读取
+ *
+ *
+ *
+ */
+
+//@Keep
+//public final class QigsawConfig {
+//    public static final boolean QIGSAW_MODE = Boolean.parseBoolean("true");
+//    public static final String QIGSAW_ID = "1.0.0_7fd2b19";
+//    public static final String VERSION_NAME = "1.0.0";
+//    public static final String DEFAULT_SPLIT_INFO_VERSION = "1.0.0_1.0.0";
+//    public static final String[] DYNAMIC_FEATURES = {"java","assets","native"};
+//
 class GenerateQigsawConfig extends ProcessOldOutputsBaseTask {
 
+    /**
+     * 应用版本号_git提交号
+     */
     @Input
     String qigsawId
-
+    /**
+     * 是否开启 QIGSAW_BUILD
+     * 或者
+     */
     @Input
     boolean qigsawMode
-
+    /**
+     * defaultConfig{
+     *     applicationId
+     * }
+     */
     @Input
     String applicationId
-
+    /**
+     * defaultConfig{
+     *    versionName
+     * }
+     */
     @Input
     String versionName
-
+    /**
+     * defaultConfig{ versionName} + "_" + qigsawSplit{splitInfoVersion}
+     */
     @Input
     String defaultSplitInfoVersion
-
+    /**
+     * android{
+     *     dynamicFeatures [声明的所有工程（名称）]
+     * }
+     */
     @Input
     Set<String> dynamicFeatureNames
-
+    /**
+     * app/build/intermediates/qigsaw/qigsaw-config/debug(release)/packagename/
+     */
     @OutputDirectory
     File outputDir
-
+    /**
+     *
+     */
     @OutputDirectory
     File buildConfigDir
 

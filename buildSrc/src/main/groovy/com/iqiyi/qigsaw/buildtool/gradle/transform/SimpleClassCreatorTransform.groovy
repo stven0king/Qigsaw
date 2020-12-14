@@ -43,19 +43,30 @@ abstract class SimpleClassCreatorTransform extends Transform {
         return MessageDigest.getInstance("MD5").digest(str.bytes).encodeHex().toString()
     }
 
+    /**
+     * TransformOutputProvider
+     * 之Transform的输出，通过它可以获取到输出路径等信息
+     *
+     * @param transformInvocation
+     * @return
+     */
     String prepareToCreateClass(TransformInvocation transformInvocation) {
         transformInvocation.inputs.each { TransformInput input ->
             input.jarInputs.each { JarInput jarInput ->
+                //jar包名称
                 def jarName = jarInput.name
+                //jar包的 验证摘要
                 def md5 = getStringMD5(jarInput.file.getAbsolutePath())
                 File dest = transformInvocation.outputProvider.getContentLocation(jarName + md5,
                         jarInput.contentTypes, jarInput.scopes, Format.JAR)
                 FileUtils.copyFile(jarInput.file, dest)
             }
+
             input.directoryInputs.each { DirectoryInput directoryInput ->
                 File dest = transformInvocation.outputProvider.getContentLocation(directoryInput.name,
                         directoryInput.contentTypes, directoryInput.scopes,
                         Format.DIRECTORY)
+                //将 input 的目录复制到 output 指定目录
                 FileUtils.copyDirectory(directoryInput.file, dest)
             }
         }
@@ -64,10 +75,20 @@ abstract class SimpleClassCreatorTransform extends Transform {
                 Format.DIRECTORY)
     }
 
+    /**
+     * 创建临时类
+     * @param dest 类存放目录
+     * @param className 类名
+     * @param superName 父类
+     * @param listener 监听器
+     *
+     */
     static void createSimpleClass(def dest, String className, String superName, OnVisitListener listener) {
         //println("createSimpleClass:$dest:$className")
         ClassWriter cw = new ClassWriter(0)
+        //根据包名转换成路径
         String folderName = className.replace(".", File.separator)
+        //类文件
         File classFile = new File(dest + File.separator + folderName + ".class")
         if (!classFile.getParentFile().exists()) {
             classFile.getParentFile().mkdirs()
@@ -78,7 +99,7 @@ abstract class SimpleClassCreatorTransform extends Transform {
                 className.replace(".", "/"), null,
                 superNameSpec,
                 null)
-
+        //访问父类的 构建方法
         MethodVisitor mw = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V",
                 null, null)
         mw.visitVarInsn(Opcodes.ALOAD, 0)

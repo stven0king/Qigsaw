@@ -32,8 +32,7 @@ import org.gradle.api.Project
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-
-//创建com.iqiyi.android.qigsaw.core.splitlib(project.name)SplitLibraryLoader.java
+//创建com.iqiyi.android.qigsaw.core.splitlib.(project.name)SplitLibraryLoader.java
 //public class nativeSplitLibraryLoader {
 //    public nativeSplitLibraryLoader() {
 //    }
@@ -42,6 +41,9 @@ import org.objectweb.asm.Opcodes
 //        System.loadLibrary(var1);
 //    }
 //}
+/**
+ * 用于多 ClassLoader 模式下，调用插件自身的 ClassLoader 加载 so
+ */
 class SplitLibraryLoaderTransform extends SimpleClassCreatorTransform {
 
     final Project project
@@ -75,7 +77,10 @@ class SplitLibraryLoaderTransform extends SimpleClassCreatorTransform {
         super.transform(transformInvocation)
         transformInvocation.getOutputProvider().deleteAll()
         def dest = prepareToCreateClass(transformInvocation)
-        //println("SplitLibraryLoaderTransform:transform:$dest")
+
+        // com.iqiyi.android.qigsaw.core.splitlib.assetsSplitLibraryLoader
+        // com.iqiyi.android.qigsaw.core.splitlib.javaSplitLibraryLoader
+        // com.iqiyi.android.qigsaw.core.splitlib.nativeSplitLibraryLoader
         createSimpleClass(dest, "com.iqiyi.android.qigsaw.core.splitlib." + project.name + "SplitLibraryLoader",
                 "java.lang.Object", new SimpleClassCreatorTransform.OnVisitListener() {
             @Override
