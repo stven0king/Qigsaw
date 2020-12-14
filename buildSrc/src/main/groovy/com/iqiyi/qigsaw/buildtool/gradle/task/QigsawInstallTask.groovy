@@ -72,6 +72,7 @@ class QigsawInstallTask extends DefaultTask {
                 //
             }
         }
+        println("QigsawInstallTask:adbExecutable=$adbExecutable")
         if (adbExecutable == null) {
             throw new GradleException("> Task :Qigsaw don't support current AGP version, adbExecutable is null!")
         }

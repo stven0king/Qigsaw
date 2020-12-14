@@ -76,6 +76,10 @@ class QigsawProcessManifestTask extends DefaultTask {
             modifyBaseManifestContent(bundleManifestDoc, bundleManifestFile, splitProviderNodes)
         }
     }
+
+    //SplitComponentTransform创建的
+    //$ContentProviderName_Decorated_$featureName继承SplitContentProvider
+    //代替原有的Provider
     /**
      *
      * 修改provider 的名字修改
@@ -98,6 +102,8 @@ class QigsawProcessManifestTask extends DefaultTask {
                         String splitProviderName = splitProviderEle.attribute("name").value
                         if (appProviderName == splitProviderName) {
                             appProviderEle.attribute("name").setValue(appProviderName + "_Decorated_" + splitProviderNode.left())
+                            String s = appProviderEle.attribute("name").getValue()
+                            println("modifyBaseManifestContent=$s")
                         }
                     }
                 }
@@ -129,6 +135,7 @@ class QigsawProcessManifestTask extends DefaultTask {
                 List<? extends Node> providers = splitRootEle.selectNodes("//provider")
                 if (providers != null && !providers.empty) {
                     for (Node provideNode : providers) {
+                        //println("getSplitProviderNodes=$splitName,$provideNode")
                         splitProviderNodes.add(Pair.of(splitName, provideNode))
                     }
                 }

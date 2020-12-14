@@ -28,19 +28,15 @@ import com.android.SdkConstants
 import com.android.tools.build.bundletool.model.Aapt2Command
 import com.android.tools.build.bundletool.model.AndroidManifest
 import com.iqiyi.qigsaw.buildtool.gradle.internal.entity.SplitInfo
+import com.iqiyi.qigsaw.buildtool.gradle.internal.tool.ApkSigner
 import com.iqiyi.qigsaw.buildtool.gradle.internal.tool.FileUtils
 import com.iqiyi.qigsaw.buildtool.gradle.internal.tool.ManifestReader
-import com.iqiyi.qigsaw.buildtool.gradle.internal.tool.ApkSigner
 import com.iqiyi.qigsaw.buildtool.gradle.internal.tool.ZipUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 
+//生成qigsaw_1.0.0_1.0.0.json
 /**
  * 用于生成 split_apk
  */
@@ -49,7 +45,7 @@ class ProcessSplitApkTask extends DefaultTask {
     ApkSigner apkSigner
 
     File aapt2File
-
+    //是否将所有拆分的APK上传到CDN，将忽略拆分的AndroidManifest文件中声明的“ onDemand”。
     @Input
     boolean releaseSplitApk
 
@@ -137,6 +133,8 @@ class ProcessSplitApkTask extends DefaultTask {
             Collection<File> resFiles = new ArrayList<>()
             resFiles.add(new File(splitLibsDir, abi))
             resFiles.add(configAndroidManifest)
+            //String s = getStringFromStream(new FileInputStream(configAndroidManifest))
+            //println("GenerateQigsawConfig:configAndroidManifest=$s")
             ZipUtils.zipFiles(resFiles, unzipSplitApkDir, protoAbiApk, compressData)
 
             //利用aapt2 工具 将 -proto.apk 利用aapt 工具 写入到 binaryAbiApk中
@@ -193,7 +191,7 @@ class ProcessSplitApkTask extends DefaultTask {
         //生成split的json配置文件
         FileUtils.createFileForTypeClass(info, splitInfoFile)
         //删除app/build/intermediates/qigsaw/split-outputs/apks/debug/tmp 下面目录
-//        FileUtils.deleteDir(tmpDir)
+        //FileUtils.deleteDir(tmpDir)
     }
 
     void createSplitConfigApkAndroidManifest(String splitName, String abi, File androidManifestFile) {
@@ -230,6 +228,7 @@ class ProcessSplitApkTask extends DefaultTask {
         }
         ManifestReader manifestReader = new ManifestReader(manifest)
         String splitApplicationName = manifestReader.readApplicationName()
+        //是否升级免安装，dist:onDemand="true"按需加载
         boolean onDemand = manifestReader.readOnDemand()
         boolean builtIn = !onDemand || !releaseSplitApk
         File[] dexFiles = unzipSplitApkDir.listFiles(new FileFilter() {
@@ -267,6 +266,7 @@ class ProcessSplitApkTask extends DefaultTask {
         splitInfo.version = splitVersion
         splitInfo.applicationName = splitApplicationName == "" ? null : splitApplicationName
         splitInfo.dependencies = dependencies.isEmpty() ? null : dependencies
+        //组件的工作进程
         splitInfo.workProcesses = splitWorkProcesses
         splitInfo.apkData = apkDataList.isEmpty() ? null : apkDataList
         splitInfo.libData = libDataList.isEmpty() ? null : libDataList
@@ -332,4 +332,20 @@ class ProcessSplitApkTask extends DefaultTask {
         return nativeLibraries
     }
 
+    static String getStringFromStream(InputStream is) throws IOException {
+        try {
+            StringBuffer sb = new StringBuffer()
+            byte[] buffer = new byte[65536]
+
+            int c
+            while((c = is.read(buffer)) != -1) {
+                sb.append(new String(buffer, 0, c))
+            }
+
+            String var4 = sb.toString()
+            return var4
+        } finally {
+            is.close();
+        }
+    }
 }

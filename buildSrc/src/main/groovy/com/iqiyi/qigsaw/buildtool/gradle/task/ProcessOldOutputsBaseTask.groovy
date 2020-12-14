@@ -30,6 +30,8 @@ import org.gradle.api.GradleException
 import org.gradle.api.tasks.InputDirectory
 
 class ProcessOldOutputsBaseTask extends DefaultTask {
+    //GenerateQigsawConfig
+    ///Users/tanzx/AndroidStudioWorkSpace/GitHub/Qigsaw/app/build/intermediates/qigsaw/old-apk/target-files/debug
     /**
      * app/build/intermediates/qigsaw/old-apk/target-files/{debug/release}
      */

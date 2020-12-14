@@ -155,6 +155,7 @@ class CreateSplitDetailsFileTask extends ProcessOldOutputsBaseTask {
         dynamicFeaturesNames.each {
             //遍历 app/build/intermediates/qigsaw/split-outputs/split-info/debug/ 下所有 .json 配置文件
             File splitInfoFile = new File(splitInfoDir, it + SdkConstants.DOT_JSON)
+            println("splitInfoFile:$splitInfoFile")
             if (!splitInfoFile.exists()) {
                 throw new GradleException("Qigsaw Error: split-info file ${splitInfoFile.absolutePath} is not existing!")
             }

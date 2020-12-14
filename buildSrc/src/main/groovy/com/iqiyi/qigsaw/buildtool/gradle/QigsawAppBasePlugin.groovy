@@ -103,6 +103,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
                 dynamicFeaturesNames.add(splitProject.name)
             }
             componentTransform.dynamicFeatureNames = dynamicFeaturesNames
+            //features包下的AndroidManifest文件拷贝过来，文件名是features名称
             //project.buildDir = /Users/lizhiqiang/Documents/AndroidProject/demo/QigsawV2/Qigsaw/app/build
             //AndroidProject.FD_INTERMEDIATES = intermediates
             //QIGSAW = qigsaw 将所有feature 下的 manifest 拷贝到指定目录
@@ -114,11 +115,13 @@ class QigsawAppBasePlugin extends QigsawPlugin {
                 if (baseVariant.versionName == null || baseVariant.applicationId == null) {
                     throw new GradleException("versionName and applicationId must be set in ${project.name}/build.gradle ")
                 }
+                //versionName+当前git的最后一个commitid
                 String qigsawId = createQigsawId(project, baseVariant.versionName)
                 SplitLogger.w("qigsaw id "+qigsawId)
-
+                //versionName_${qigsawSplit.splitInfoVersion}
                 String completeSplitInfoVersion = jointCompleteSplitInfoVersion(project, baseVariant.versionName)
                 SplitLogger.w("qigsaw info version "+completeSplitInfoVersion)
+                //获取project中productFlavors下对应的Application的ndk.abiFilters,和defaultConfig.ndk.abiFilters
                 //遍历 abi filter
                 Set<String> baseAbiFilters = getAbiFilters(project, baseVariant)
                 //获取apk 签名工具
@@ -191,6 +194,9 @@ class QigsawAppBasePlugin extends QigsawPlugin {
                 generateQigsawConfig.buildConfigDir = baseVariant.variantData.scope.buildConfigSourceOutputDir
                 generateQigsawConfig.targetFilesExtractedDir = targetFilesExtractedDir
                 generateQigsawConfig.setGroup(QIGSAW)
+                println("GenerateQigsawConfig:outputDir=$generateQigsawConfig.outputDir")
+                println("GenerateQigsawConfig:targetFilesExtractedDir=$generateQigsawConfig.targetFilesExtractedDir")
+                println("GenerateQigsawConfig:buildConfigDir=$generateQigsawConfig.buildConfigDir")
 
                 //将所有feature包 和 配置信息  拷贝到 app/build/intermediates/merged_assets/debug/out/qigsaw/
                 CreateSplitDetailsFileTask qigsawAssemble = project.tasks.create("qigsawAssemble${baseVariant.name.capitalize()}", CreateSplitDetailsFileTask)
@@ -367,16 +373,17 @@ class QigsawAppBasePlugin extends QigsawPlugin {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     dynamicFeatures.each { String dynamicFeature ->
                         Project splitProject = project.rootProject.project(dynamicFeature)
                         ProcessTaskDependenciesBetweenBaseAndSplits taskDependenciesProcessor = new ProcessTaskDependenciesBetweenBaseAndSplits()
+                        //该feature是否配置完成，目前这个时候都是false
                         boolean isProjectEvaluated
                         try {
                             splitProject.extensions.android
                             isProjectEvaluated = true
                         } catch (Throwable ignored) {
+                            println("tanzhenxing:error:$splitProject:$ignored")
                             isProjectEvaluated = false
                         }
                         if (isProjectEvaluated) {
@@ -400,6 +407,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
         }
     }
 
+    //将feature项目的androidManifest.xml文件拷贝到Users/tanzx/AndroidStudioWorkSpace/GitHub/Qigsaw/app/build/intermediates/qigsaw/split-outputs/manifests/debug
     static class ProcessTaskDependenciesBetweenBaseAndSplits implements Runnable {
 
         ApplicationVariant baseVariant
@@ -426,9 +434,12 @@ class QigsawAppBasePlugin extends QigsawPlugin {
                         }
                         into(splitManifestDir)
                     }
+                    println("splitManifestDir=$splitManifestDir")
+
                     processSplitManifest.finalizedBy copySplitManifest
                     copySplitManifest.dependsOn processSplitManifest
                     copySplitManifest.setGroup(QIGSAW)
+
                     onTargetVariantFound(variant, copySplitManifest)
                 }
             }
@@ -462,12 +473,15 @@ class QigsawAppBasePlugin extends QigsawPlugin {
 
         @Override
         protected void onTargetVariantFound(ApplicationVariant splitVariant, Task copySplitManifest) {
+
             //
             qigsawProcessManifest.dependsOn copySplitManifest
+            //ApplicationVersionName
             String versionName = splitVariant.mergedFlavor.versionName
             if (versionName == null) {
                 throw new GradleException("Qigsaw Error:versionName must be set in ${splitProject.name}/build.gradle!")
             }
+            //println("onTargetVariantFound:$versionName")
             Set<String> splitAbiFilters = getAbiFilters(splitProject, splitVariant)
             if (!baseAbiFilters.isEmpty() && !baseAbiFilters.containsAll(splitAbiFilters)) {
                 throw new GradleException("abiFilters config in project ${splitProject.name} must be less than base project.")
@@ -477,6 +491,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
             splitVariant.outputs.each {
                 splitApks.add(it.outputFile)
             }
+            //ApplicationVersionName@ApplicationVersionCode
             String splitVersion = versionName + "@" + splitVariant.mergedFlavor.versionCode
             int minApiLevel = splitVariant.mergedFlavor.minSdkVersion.apiLevel
             Set<String> splitProjectDependencies = new HashSet<>()
@@ -582,6 +597,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
      * @param project
      * @return
      */
+    //获取tinker的oldApk或者qigsaw的oldApk
     static File getOldApkCompat(Project project) {
         File oldApk = TinkerHelper.getOldApkFile(project)
         if (oldApk == null) {

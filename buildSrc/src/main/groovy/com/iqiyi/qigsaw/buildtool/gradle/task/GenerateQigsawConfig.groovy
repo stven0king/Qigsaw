@@ -42,6 +42,11 @@ import org.gradle.api.tasks.TaskAction
  *
  */
 
+//extractTargetFilesFromOldApk.dependsOn processManifest
+//qigsawAssemble.dependsOn extractTargetFilesFromOldApk
+//generateQigsawConfig.dependsOn extractTargetFilesFromOldApk
+//generateQigsawConfig.dependsOn generateBuildConfig
+//generateBuildConfig.finalizedBy generateQigsawConfig
 //@Keep
 //public final class QigsawConfig {
 //    public static final boolean QIGSAW_MODE = Boolean.parseBoolean("true");
@@ -49,12 +54,13 @@ import org.gradle.api.tasks.TaskAction
 //    public static final String VERSION_NAME = "1.0.0";
 //    public static final String DEFAULT_SPLIT_INFO_VERSION = "1.0.0_1.0.0";
 //    public static final String[] DYNAMIC_FEATURES = {"java","assets","native"};
-//
+//}
 class GenerateQigsawConfig extends ProcessOldOutputsBaseTask {
 
     /**
      * 应用版本号_git提交号
      */
+    //versionName+当前git的最后一个commitid
     @Input
     String qigsawId
     /**
@@ -80,6 +86,8 @@ class GenerateQigsawConfig extends ProcessOldOutputsBaseTask {
     /**
      * defaultConfig{ versionName} + "_" + qigsawSplit{splitInfoVersion}
      */
+
+    //versionName_${qigsawSplit.splitInfoVersion}
     @Input
     String defaultSplitInfoVersion
     /**
@@ -92,11 +100,11 @@ class GenerateQigsawConfig extends ProcessOldOutputsBaseTask {
     /**
      * app/build/intermediates/qigsaw/qigsaw-config/debug(release)/packagename/
      */
+
+    ///Users/tanzx/AndroidStudioWorkSpace/GitHub/Qigsaw/app/build/intermediates/qigsaw/qigsaw-config/debug
     @OutputDirectory
     File outputDir
-    /**
-     *
-     */
+    ///Users/tanzx/AndroidStudioWorkSpace/GitHub/Qigsaw/app/build/generated/source/buildConfig/debug
     @OutputDirectory
     File buildConfigDir
 
@@ -107,6 +115,7 @@ class GenerateQigsawConfig extends ProcessOldOutputsBaseTask {
         if (qigsawConfigFile.exists()) {
             qigsawConfigFile.delete()
         }
+        println("GenerateQigsawConfig:qigsawConfigFile=$qigsawConfigFile")
         List<String> jointList = new ArrayList<>()
         for (String name : dynamicFeatureNames) {
             jointList.add("\"" + name + "\"")
@@ -119,6 +128,8 @@ class GenerateQigsawConfig extends ProcessOldOutputsBaseTask {
                     throw new GradleException("Qigsaw Error: Can't read qigsaw id from old apk!")
                 }
                 SplitLogger.w("Read qigsaw id ${qigsawId} from old apk!")
+            } else {
+                println("GenerateQigsawConfig:oldSplitDetailsFile isn't exist~!")
             }
         }
         generator
@@ -135,6 +146,7 @@ class GenerateQigsawConfig extends ProcessOldOutputsBaseTask {
         if (!destDir.exists()) {
             destDir.mkdirs()
         }
+        //QigsawConfigGenerator.QIGSAW_CONFIG_NAME = "QigsawConfig.java"
         File destFile = new File(destDir, QigsawConfigGenerator.QIGSAW_CONFIG_NAME)
         if (destFile.exists()) {
             destFile.delete()
