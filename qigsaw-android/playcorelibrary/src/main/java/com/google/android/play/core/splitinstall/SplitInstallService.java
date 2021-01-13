@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.play.core.remote.OnBinderDiedListener;
 import com.google.android.play.core.remote.RemoteManager;
@@ -30,6 +31,7 @@ final class SplitInstallService {
 
     SplitInstallService(Context context) {
         this(context, context.getPackageName());
+        Log.d("Split", "SplitInstallService");
     }
 
     private SplitInstallService(Context context, String packageName) {
@@ -41,6 +43,7 @@ final class SplitInstallService {
     }
 
     Task<Integer> startInstall(List<String> moduleNames) {
+        Log.d("Split", "SplitInstallService:startInstall");
         playCore.info("startInstall(%s)", moduleNames);
         TaskWrapper<Integer> taskWrapper = new TaskWrapper<>();
         mSplitRemoteManager.bindService(new StartInstallTask(this, taskWrapper, moduleNames, taskWrapper));
@@ -48,6 +51,7 @@ final class SplitInstallService {
     }
 
     Task<Void> deferredInstall(List<String> moduleNames) {
+        Log.d("Split", "SplitInstallService:deferredInstall");
         playCore.info("deferredInstall(%s)", moduleNames);
         TaskWrapper<Void> taskWrapper = new TaskWrapper<>();
         mSplitRemoteManager.bindService(new DeferredInstallTask(this, taskWrapper, moduleNames, taskWrapper));
@@ -55,6 +59,7 @@ final class SplitInstallService {
     }
 
     Task<Void> deferredUninstall(List<String> moduleNames) {
+        Log.d("Split", "SplitInstallService:deferredUninstall");
         playCore.info("deferredUninstall(%s)", moduleNames);
         TaskWrapper<Void> taskWrapper = new TaskWrapper<>();
         mSplitRemoteManager.bindService(new DeferredUninstallTask(this, taskWrapper, moduleNames, taskWrapper));
@@ -62,6 +67,7 @@ final class SplitInstallService {
     }
 
     Task<SplitInstallSessionState> getSessionState(int sessionId) {
+        Log.d("Split", "SplitInstallService:getSessionState");
         playCore.info("getSessionState(%d)", sessionId);
         TaskWrapper<SplitInstallSessionState> taskWrapper = new TaskWrapper<>();
         mSplitRemoteManager.bindService(new GetSessionStateTask(this, taskWrapper, sessionId, taskWrapper));
@@ -69,6 +75,7 @@ final class SplitInstallService {
     }
 
     Task<List<SplitInstallSessionState>> getSessionStates() {
+        Log.d("Split", "SplitInstallService:getSessionStates");
         playCore.info("getSessionStates");
         TaskWrapper<List<SplitInstallSessionState>> taskWrapper = new TaskWrapper<>();
         mSplitRemoteManager.bindService(new GetSessionStatesTask(this, taskWrapper, taskWrapper));

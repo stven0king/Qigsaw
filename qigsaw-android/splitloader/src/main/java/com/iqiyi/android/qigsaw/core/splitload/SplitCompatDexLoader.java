@@ -1,7 +1,9 @@
 package com.iqiyi.android.qigsaw.core.splitload;
 
 import android.os.Build;
+import android.util.Log;
 
+import com.iqiyi.android.qigsaw.core.common.FileUtil;
 import com.iqiyi.android.qigsaw.core.common.SplitLog;
 
 import java.io.File;
@@ -23,6 +25,7 @@ final class SplitCompatDexLoader {
 
     static void load(ClassLoader classLoader, File dexOptDir, List<File> files)
             throws Throwable {
+        Log.d(TAG, "load: ");
         if (!files.isEmpty()) {
             if (Build.VERSION.SDK_INT >= 23) {
                 V23.load(classLoader, files, dexOptDir);
@@ -59,6 +62,7 @@ final class SplitCompatDexLoader {
                                  File optimizedDirectory)
                 throws IllegalArgumentException, IllegalAccessException,
                 NoSuchFieldException, InvocationTargetException, NoSuchMethodException, IOException {
+            Log.d(TAG, "V23:load: ");
             /* The patched class loader is expected to be a descendant of
              * dalvik.system.BaseDexClassLoader. We modify its
              * dalvik.system.DexPathList pathList field to append additional DEX
@@ -76,6 +80,8 @@ final class SplitCompatDexLoader {
                     throw e;
                 }
 
+            } else {
+                FileUtil.printFile(optimizedDirectory);
             }
         }
 

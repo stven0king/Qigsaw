@@ -117,9 +117,12 @@ public class Qigsaw {
     }
 
     private void onBaseContextAttached() {
+        //设置包名方便获取QigsawConfig.java文件
         SplitBaseInfoProvider.setPackageName(context.getPackageName());
+        //QigsawConfig.java文件中的Qigsaw开关
         boolean qigsawMode = SplitBaseInfoProvider.isQigsawMode();
         if (isMainProcess) {
+            //设置默认的updateReporter
             SplitUpdateReporterManager.install(splitConfiguration.updateReporter == null ? new DefaultSplitUpdateReporter(context) : splitConfiguration.updateReporter);
         }
         //init SplitLoadManager and hook PatchCLassLoader.
@@ -133,6 +136,7 @@ public class Qigsaw {
                 splitConfiguration.forbiddenWorkProcesses);
         //data may be cached.
         SplitLoadManagerService.getInstance().clear();
+        //hook类加载器,在加载类的时候通过拦截器加载split中的dex
         SplitLoadManagerService.getInstance().injectPathClassloader();
         //data may be cached.
         AABExtension.getInstance().clear();

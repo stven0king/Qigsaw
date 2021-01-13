@@ -41,7 +41,7 @@ public class QigsawApplication extends Application {
         //Using QigsawConfig.java to get same info about splits, for example
 //        Log.d(TAG, String.format("There are %d splits in your app!", QigsawConfig.DYNAMIC_FEATURES.length));
         SplitConfiguration configuration = SplitConfiguration.newBuilder()
-                .splitLoadMode(SplitLoad.MULTIPLE_CLASSLOADER)
+                .splitLoadMode(SplitLoad.SINGLE_CLASSLOADER)
                 .workProcesses(workProcesses)
 //                .forbiddenWorkProcesses(forbiddenWorkProcesses)
                 .logger(new SampleLogger())

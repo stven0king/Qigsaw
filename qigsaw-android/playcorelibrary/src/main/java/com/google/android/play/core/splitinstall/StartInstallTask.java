@@ -1,6 +1,7 @@
 package com.google.android.play.core.splitinstall;
 
 import android.os.RemoteException;
+import android.util.Log;
 
 import com.google.android.play.core.remote.RemoteTask;
 import com.google.android.play.core.tasks.TaskWrapper;
@@ -25,6 +26,7 @@ final class StartInstallTask extends RemoteTask {
     @Override
     protected void execute() {
         try {
+            Log.d("Split", "StartInstallTask:execute");
             mSplitInstallService.mSplitRemoteManager.getIInterface().startInstall(
                     this.mSplitInstallService.mPackageName,
                     SplitInstallService.wrapModuleNames(moduleNames),

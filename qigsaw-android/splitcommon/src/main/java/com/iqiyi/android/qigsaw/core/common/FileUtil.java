@@ -2,6 +2,7 @@ package com.iqiyi.android.qigsaw.core.common;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
@@ -237,5 +238,24 @@ public class FileUtil {
             }
         }
         return true;
+    }
+
+
+    public static void printFile(File file) {
+        if (file != null && file.exists()) {
+            if (!file.isDirectory()) {
+                Log.d(TAG, "printFile = " + file.getAbsolutePath());
+                return;
+            }
+            File[] listFiles = file.listFiles();
+            if (listFiles != null && listFiles.length > 0) {
+                Log.d(TAG, String.format("%s.listFiles size = %s", file.getAbsolutePath(), listFiles.length));
+                for (File f:listFiles) {
+                    printFile(f);
+                }
+            } else {
+                Log.d(TAG, "printFile = " + file.getAbsolutePath());
+            }
+        }
     }
 }

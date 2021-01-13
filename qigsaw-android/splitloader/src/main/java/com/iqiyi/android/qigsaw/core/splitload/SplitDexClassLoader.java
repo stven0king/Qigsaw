@@ -25,6 +25,7 @@
 package com.iqiyi.android.qigsaw.core.splitload;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.Keep;
 
@@ -66,6 +67,7 @@ final class SplitDexClassLoader extends BaseDexClassLoader {
                                       File optimizedDirectory,
                                       File librarySearchFile,
                                       List<String> dependencies) throws Throwable {
+        Log.d(TAG, "create: ");
         long time = System.currentTimeMillis();
         SplitDexClassLoader cl = new SplitDexClassLoader(
                 moduleName,
@@ -82,8 +84,10 @@ final class SplitDexClassLoader extends BaseDexClassLoader {
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         try {
+            Log.d(TAG, "findClass: name=" + name);
             return super.findClass(name);
         } catch (ClassNotFoundException e1) {
+            Log.d(TAG, "SplitDexClassLoader:findClass:" + name);
             if (dependenciesLoaders != null) {
                 for (SplitDexClassLoader loader : dependenciesLoaders) {
                     try {

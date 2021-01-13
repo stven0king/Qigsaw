@@ -25,6 +25,8 @@
 package com.iqiyi.android.qigsaw.core.splitload;
 
 import android.content.Context;
+import android.util.Log;
+
 import androidx.annotation.Nullable;
 
 import com.iqiyi.android.qigsaw.core.splitreport.SplitLoadError;
@@ -34,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 final class SplitLoaderImpl2 extends SplitLoader {
-
+    private static final String TAG = "SplitLoaderImpl2";
     SplitLoaderImpl2(Context context) {
         super(context);
     }
@@ -49,6 +51,7 @@ final class SplitLoaderImpl2 extends SplitLoader {
     }
 
     private void loadLibrary(ClassLoader classLoader, File librarySearchPath) throws SplitLoadException {
+        Log.d(TAG, "loadLibrary: ");
         if (librarySearchPath != null) {
             try {
                 SplitCompatLibraryLoader.load(classLoader, librarySearchPath);
@@ -57,8 +60,9 @@ final class SplitLoaderImpl2 extends SplitLoader {
             }
         }
     }
-
+    
     private void loadDex(ClassLoader classLoader, List<String> dexPaths, File optimizedDirectory) throws SplitLoadException {
+        Log.d(TAG, "loadDex: ");
         if (dexPaths != null) {
             List<File> dexFiles = new ArrayList<>(dexPaths.size());
             for (String dexPath : dexPaths) {

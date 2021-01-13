@@ -61,6 +61,7 @@ public class SampleDownloader implements Downloader {
             if (i == requests.size()) {
                 break;
             }
+            Log.d(TAG, "startDownload: urls = " + request.getUrl());
             if (!request.getUrl().startsWith("assets://") || !request.getUrl().startsWith("native://")) {
                 parentPath[i] = request.getFileDir();
                 fileName[i] = request.getFileName();
@@ -70,6 +71,7 @@ public class SampleDownloader implements Downloader {
         }
 
         if (urls[0] == null) {
+            Log.d(TAG, "startDownload: urls[0]");
             callback.onCompleted();
             return;
         }

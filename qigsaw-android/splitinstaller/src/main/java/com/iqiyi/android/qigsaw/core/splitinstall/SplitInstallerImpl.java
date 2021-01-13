@@ -27,6 +27,7 @@ package com.iqiyi.android.qigsaw.core.splitinstall;
 import android.content.Context;
 import android.os.Build;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -66,6 +67,18 @@ final class SplitInstallerImpl extends SplitInstaller {
         this.verifySignature = verifySignature;
     }
 
+    /**
+     * this method executed after download split apk file.
+     *
+     * split apk file is legal
+     * verify signature
+     * check split md5
+     * generate oat file
+     * @param startInstall whether install splits immediately.
+     * @param info
+     * @return
+     * @throws InstallException
+     */
     @Override
     public InstallResult install(boolean startInstall, @NonNull SplitInfo info) throws InstallException {
         File splitDir = SplitPathManager.require().getSplitDir(info);
@@ -102,6 +115,7 @@ final class SplitInstallerImpl extends SplitInstaller {
                 verifySignature(splitApk);
             }
             checkSplitMD5(splitApk, apkData.getMd5());
+            //extract so file from split apk
             if (!SplitConstants.MASTER.equals(apkData.getAbi())) {
                 if (libData != null) {
                     splitLibDir = SplitPathManager.require().getSplitLibDir(info, libData.getAbi());
@@ -110,12 +124,16 @@ final class SplitInstallerImpl extends SplitInstaller {
             } else {
                 splitMasterApk = splitApk;
                 if (info.hasDex()) {
+                    //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/oat
                     optimizedDirectory = SplitPathManager.require().getSplitOptDir(info);
                     addedDexPaths = new ArrayList<>();
                     addedDexPaths.add(splitApk.getAbsolutePath());
+                    // can't support multi dex, No need to consider
                     if (!isVMMultiDexCapable()) {
                         if (info.isMultiDex()) {
+                            //Qigsaw / {$ gigsawid} / {$ splitname} / {$ {splitversion}} / code_cache
                             File codeCacheDir = SplitPathManager.require().getSplitCodeCacheDir(info);
+                            //dex zip file
                             addedDexPaths.addAll(extractMultiDex(splitApk, codeCacheDir, info));
                         }
                     }
@@ -125,6 +143,9 @@ final class SplitInstallerImpl extends SplitInstaller {
                     if (!markFile.exists()) {
                         try {
                             new DexClassLoader(dexPath, optimizedDirectory.getAbsolutePath(), librarySearchPath, SplitInstallerImpl.class.getClassLoader());
+                            //test generate <split-abi.odex> and <split-abi.vdex> file
+                            //Thread.sleep(1000);
+                            //FileUtil.printFile(optimizedDirectory);
                         } catch (Throwable error) {
                             throw new InstallException(
                                     SplitInstallError.CLASSLOADER_CREATE_FAILED,
@@ -132,10 +153,13 @@ final class SplitInstallerImpl extends SplitInstaller {
                         }
                     }
                     //check oat file. We found many native crash in libart.so, especially vivo & oppo.
+                    //current sdk version >20 and current sdk version < 26
                     if (OEMCompat.shouldCheckOatFileInCurrentSys()) {
                         SplitLog.v(TAG, "Start to check oat file, current api level is " + Build.VERSION.SDK_INT);
                         boolean specialManufacturer = OEMCompat.isSpecialManufacturer();
+                        //optimizedDirectory=Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/oat
                         File oatFile = OEMCompat.getOatFilePath(splitApk, optimizedDirectory);
+                        //check oat file
                         if (FileUtil.isLegalFile(oatFile)) {
                             boolean checkResult = OEMCompat.checkOatFile(oatFile);
                             SplitLog.v(TAG, "Result of oat file %s is " + checkResult, oatFile.getAbsoluteFile());
@@ -196,11 +220,20 @@ final class SplitInstallerImpl extends SplitInstaller {
         }
     }
 
+    /**
+     *
+     * @param splitApk     file of split apk.
+     * @param codeCacheDir directory of split dex files:
+     * @param splitInfo    {@link SplitInfo}
+     * @return
+     * @throws InstallException
+     */
     @Override
     protected List<String> extractMultiDex(File splitApk, File codeCacheDir, @NonNull SplitInfo splitInfo) throws InstallException {
         SplitLog.w(TAG,
                 "VM do not support multi-dex, but split %s has multi dex files, so we need install other dex files manually",
                 splitApk.getName());
+        //splitName@splitUpdateVersion@splitVersion
         String prefsKeyPrefix = splitInfo.getSplitName() + "@" + SplitBaseInfoProvider.getVersionName() + "@" + splitInfo.getSplitVersion();
         try {
             SplitMultiDexExtractor extractor = new SplitMultiDexExtractor(splitApk, codeCacheDir);
@@ -223,6 +256,13 @@ final class SplitInstallerImpl extends SplitInstaller {
         }
     }
 
+    /**
+     * extract so file from split apk
+     * @param splitApk file of split apk.
+     * @param libDir   directory of split so files.
+     * @param libData  {@link SplitInfo.LibData}
+     * @throws InstallException
+     */
     @Override
     protected void extractLib(File splitApk, File libDir, @NonNull SplitInfo.LibData libData) throws InstallException {
         try {

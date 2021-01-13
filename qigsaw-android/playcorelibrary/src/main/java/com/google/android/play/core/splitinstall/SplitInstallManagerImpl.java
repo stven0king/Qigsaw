@@ -60,10 +60,12 @@ final class SplitInstallManagerImpl implements SplitInstallManager {
 
     @Override
     public Task<Integer> startInstall(SplitInstallRequest request) {
+        Log.d("Split", "SplitInstallManagerImpl:startInstall");
         if (getInstalledModules().containsAll(request.getModuleNames())) {
             mMainHandler.post(new SplitInstalledDisposer(this, request));
             return Tasks.createTaskAndSetResult(0);
         } else {
+            Log.d("Split", "SplitInstallManagerImpl:mInstallService:startInstall");
             return mInstallService.startInstall(request.getModuleNames());
         }
     }
@@ -148,6 +150,7 @@ final class SplitInstallManagerImpl implements SplitInstallManager {
             if ((fusedName = appInfo.metaData.getString("shadow.bundletool.com.android.dynamic.apk.fused.modules")) != null && !fusedName.isEmpty()) {
                 Collections.addAll(fusedModules, fusedName.split(",", -1));
                 fusedModules.remove("");
+                Log.d(TAG, "aab feature names = " + fusedName);
                 return fusedModules;
             } else {
                 Log.d(TAG, "App has no fused modules.");
@@ -167,7 +170,14 @@ final class SplitInstallManagerImpl implements SplitInstallManager {
     private String[] getSplitInstallInfo() {
         try {
             PackageInfo packageInfo;
-            return (packageInfo = context.getPackageManager().getPackageInfo(packageName, 0)) != null ? packageInfo.splitNames : null;
+            String[] splitNames = (packageInfo = context.getPackageManager().getPackageInfo(packageName, 0)) != null ? packageInfo.splitNames : null;
+            StringBuilder stringBuilder = new StringBuilder("[");
+            for (String s:splitNames) {
+                stringBuilder.append(s).append(",");
+            }
+            stringBuilder.append("]");
+            Log.d(TAG, "App is " + stringBuilder.toString() + " found in PackageManager");
+            return splitNames;
         } catch (Throwable var2) {
             Log.d(TAG, "App is not found in PackageManager");
             return null;

@@ -26,6 +26,7 @@ package com.iqiyi.android.qigsaw.core.splitload;
 
 
 import android.content.Intent;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -57,6 +58,7 @@ final class SplitLoadTaskImpl2 extends SplitLoadTask {
                                 File optimizedDirectory,
                                 File librarySearchPath,
                                 List<String> dependencies) throws SplitLoadException {
+        Log.d("SplitLoadTaskImpl2", "loadCode: ");
         getSplitLoader().loadCode2(addedDexPaths, optimizedDirectory, librarySearchPath);
         return SplitLoadTask.class.getClassLoader();
     }

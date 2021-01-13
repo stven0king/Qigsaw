@@ -57,12 +57,19 @@ public abstract class SplitInstallSupervisor {
 
     private static final String TAG = "SplitInstallSupervisor";
 
+    /**
+     * 1、删除qigsaw/${qigsawid}/uninstall/uninstallsplits.info中配置的
+     * 2、删除每个split name对应的老版本数据
+     * @param context
+     */
     public final void startUninstall(Context context) {
         SplitPendingUninstallManager pendingUninstallManager = new SplitPendingUninstallManager();
+        //qigsaw/${qigsawid}/uninstall/uninstallsplits.info,文件内容逗号分隔
         List<String> uninstallSplits = pendingUninstallManager.readPendingUninstallSplits();
         SplitInfoManager manager = SplitInfoManagerService.getInstance();
         List<SplitInfo> realUninstallSplits = null;
         if (uninstallSplits != null && manager != null) {
+            //当前Qigsawjson配置文件中split names
             List<SplitInfo> uninstallSplitInfoList = manager.getSplitInfos(context, uninstallSplits);
             if (uninstallSplitInfoList != null) {
                 ProcessUtil.killAllOtherProcess(context);
@@ -70,6 +77,7 @@ public abstract class SplitInstallSupervisor {
                 for (SplitInfo uninstallSplitInfo : uninstallSplitInfoList) {
                     try {
                         String installedMark = uninstallSplitInfo.obtainInstalledMark(context);
+                        //获取标识已经安装成功的mark文件
                         File installedMarkFile = SplitPathManager.require().getSplitMarkFile(uninstallSplitInfo, installedMark);
                         boolean ret = FileUtil.deleteFileSafely(installedMarkFile);
                         if (ret) {
@@ -81,6 +89,7 @@ public abstract class SplitInstallSupervisor {
                 }
             }
         }
+        //删除split模块信息,同步删除卸载模块信息配置文件
         if (realUninstallSplits != null && !realUninstallSplits.isEmpty()) {
             SplitInstallService.getHandler(context.getPackageName()).post(new SplitStartUninstallTask(realUninstallSplits));
         } else {

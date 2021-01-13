@@ -1,7 +1,9 @@
 package com.iqiyi.android.qigsaw.core.splitload;
 
 import android.os.Build;
+import android.util.Log;
 
+import com.iqiyi.android.qigsaw.core.common.FileUtil;
 import com.iqiyi.android.qigsaw.core.common.SplitConstants;
 import com.iqiyi.android.qigsaw.core.common.SplitLog;
 
@@ -21,6 +23,7 @@ final class SplitUnKnownFileTypeDexLoader {
     private static final String TAG = "SplitUnKnownFileTypeDexLoader";
 
     static void loadDex(ClassLoader classLoader, List<String> dexPaths, File optimizedDirectory) throws Throwable {
+        Log.d("Split", "SplitUnKnownFileTypeDexLoader:loadDex");
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             if (dexPaths != null) {
                 List<File> unsupportedZips = new ArrayList<>();
@@ -73,5 +76,6 @@ final class SplitUnKnownFileTypeDexLoader {
                 }
             }
         }
+        FileUtil.printFile(optimizedDirectory);
     }
 }

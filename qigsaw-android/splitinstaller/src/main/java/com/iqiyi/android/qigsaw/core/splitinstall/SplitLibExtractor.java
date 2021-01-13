@@ -42,7 +42,9 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
+/**
+ * Unzip the file(.apk) get .so file and check md5
+ */
 final class SplitLibExtractor implements Closeable {
 
     private static final String TAG = "Split:LibExtractor";
@@ -192,6 +194,12 @@ final class SplitLibExtractor implements Closeable {
         return null;
     }
 
+    /**
+     * extract lib form lib file, and check file md5
+     * @param libs
+     * @return
+     * @throws IOException
+     */
     private List<File> loadExistingExtractions(List<SplitInfo.LibData.Lib> libs) throws IOException {
         SplitLog.i(TAG, "loading existing lib files");
         File[] files = libDir.listFiles();

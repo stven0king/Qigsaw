@@ -115,6 +115,12 @@ public class SplitInfo {
         return primaryApkDataList;
     }
 
+    /**
+     * split的abi是master，返回md5.0
+     * @param context
+     * @return
+     * @throws IOException
+     */
     public String obtainInstalledMark(Context context) throws IOException {
         List<ApkData> apkDataList = getApkDataList(context);
         String markStart = null;

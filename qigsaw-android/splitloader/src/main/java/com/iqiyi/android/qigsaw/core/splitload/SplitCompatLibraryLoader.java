@@ -1,7 +1,9 @@
 package com.iqiyi.android.qigsaw.core.splitload;
 
 import android.os.Build;
+import android.util.Log;
 
+import com.iqiyi.android.qigsaw.core.common.FileUtil;
 import com.iqiyi.android.qigsaw.core.common.SplitLog;
 
 import java.io.File;
@@ -126,6 +128,7 @@ final class SplitCompatLibraryLoader {
 
     private static final class V25 {
         private static void load(ClassLoader classLoader, File folder) throws Throwable {
+            Log.d(TAG, "V25:load: ");
             final Field pathListField = HiddenApiReflection.findField(classLoader, "pathList");
             final Object dexPathList = pathListField.get(classLoader);
 
@@ -160,6 +163,7 @@ final class SplitCompatLibraryLoader {
 
             final Field nativeLibraryPathElements = HiddenApiReflection.findField(dexPathList, "nativeLibraryPathElements");
             nativeLibraryPathElements.set(dexPathList, elements);
+            FileUtil.printFile(folder);
         }
     }
 }

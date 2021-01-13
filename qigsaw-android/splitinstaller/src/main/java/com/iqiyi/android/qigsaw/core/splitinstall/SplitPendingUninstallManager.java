@@ -54,12 +54,15 @@ public final class SplitPendingUninstallManager {
 
     private static final String PENDING_UNINSTALL_SPLITS = "pendingUninstallSplits";
 
+    //qigsaw/${qigsawid}/uninstall/uninstallsplits.info
     private final File pendingUninstallSplitsFile;
 
     private static final Object sLock = new Object();
 
     public SplitPendingUninstallManager() {
+        //qigsaw/${qigsawid}/uninstall
         File uninstallDir = SplitPathManager.require().getUninstallSplitsDir();
+        //qigsaw/${qigsawid}/uninstall/uninstallsplits.info
         this.pendingUninstallSplitsFile = new File(uninstallDir, VERSION_DATA_NAME);
     }
 
@@ -81,12 +84,26 @@ public final class SplitPendingUninstallManager {
         }
     }
 
+    /**
+     * 记录延期卸载内置的split信息
+     * qigsaw/${qigsawid}/uninstall/uninstallsplits.info文件中的splitname
+     * @param pendingUninstallSplits
+     * @return
+     */
     boolean recordPendingUninstallSplits(@NonNull List<String> pendingUninstallSplits) {
         synchronized (sLock) {
             return recordPendingUninstallSplitsInternal(pendingUninstallSplitsFile, pendingUninstallSplits);
         }
     }
 
+    /**
+     * 获取qigsaw/${qigsawid}/uninstall/uninstallsplits.info文件中的splitname
+     * #splits need to be uninstalled: [java, assets, native]
+     * #Wed Jan 06 15:16:10 GMT+08:00 2021
+     * pendingUninstallSplits=java,assets,native
+     * @param pendingUninstallSplitsFile
+     * @return
+     */
     private List<String> readPendingUninstallSplitsInternal(File pendingUninstallSplitsFile) {
         List<String> uninstallInfoList = null;
         boolean isReadPatchSuccessful = false;
@@ -114,6 +131,14 @@ public final class SplitPendingUninstallManager {
         return uninstallInfoList;
     }
 
+    /**
+     *
+     * 如果文件已经存在，判断是否包含当前需要卸载split模块信息
+     * 包含直接返回，否则将文件已经存在的卸载模块信息一起再次记录
+     * @param pendingUninstallSplitsFile
+     * @param pendingUninstallSplits
+     * @return
+     */
     private boolean recordPendingUninstallSplitsInternal(File pendingUninstallSplitsFile, List<String> pendingUninstallSplits) {
         if (pendingUninstallSplitsFile == null || pendingUninstallSplits == null) {
             return false;
@@ -127,7 +152,6 @@ public final class SplitPendingUninstallManager {
         boolean isWritePatchSuccessful = false;
 
         int numAttempts = 0;
-
         if (pendingUninstallSplitsFile.exists()) {
             List<String> oldPendingUninstallSplits = readPendingUninstallSplits();
             if (oldPendingUninstallSplits != null) {

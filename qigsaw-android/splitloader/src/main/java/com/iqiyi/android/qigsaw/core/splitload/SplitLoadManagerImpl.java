@@ -34,6 +34,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.iqiyi.android.qigsaw.core.common.FileUtil;
 import com.iqiyi.android.qigsaw.core.common.OEMCompat;
@@ -71,13 +72,16 @@ final class SplitLoadManagerImpl extends SplitLoadManager {
         this.qigsawMode = qigsawMode;
         this.workProcesses = workProcesses;
         this.forbiddenWorkProcesses = forbiddenWorkProcesses;
+        //splitinfo信息：新老版本
         SplitInfoManagerService.install(context, isMainProcess);
+        //更具QigsawConfig.java中的Qigsawid确定SplitPath路径
         SplitPathManager.install(context);
     }
 
     @Override
     public void injectPathClassloader() {
         if (isInjectPathClassloaderNeeded()) {
+            //当前进程是否允许Qigsaw工作
             if (isProcessAllowedToWork()) {
                 injectClassLoader(getContext().getClassLoader());
             }
@@ -91,6 +95,7 @@ final class SplitLoadManagerImpl extends SplitLoadManager {
 
     @Override
     public void preloadInstalledSplits(Collection<String> splitNames) {
+        Log.d(TAG, "preloadInstalledSplits: ");
         if (!qigsawMode) {
             return;
         }
@@ -110,6 +115,7 @@ final class SplitLoadManagerImpl extends SplitLoadManager {
 
     @Override
     public Runnable createSplitLoadTask(List<Intent> splitFileIntents, @Nullable OnSplitLoadListener loadListener) {
+        Log.d("Split", "createSplitLoadTask:");
         if (splitLoadMode() == SplitLoad.MULTIPLE_CLASSLOADER) {
             return new SplitLoadTaskImpl(this, splitFileIntents, loadListener);
         } else {
@@ -119,15 +125,18 @@ final class SplitLoadManagerImpl extends SplitLoadManager {
 
     @Override
     public void loadInstalledSplits() {
+        Log.d(TAG, "loadInstalledSplits: ");
         loadInstalledSplitsInternal(null);
     }
 
     private void loadInstalledSplitsInternal(Collection<String> splitNames) {
+        Log.d(TAG, "loadInstalledSplitsInternal: ");
         SplitInfoManager manager = SplitInfoManagerService.getInstance();
         if (manager == null) {
             SplitLog.w(TAG, "Failed to get SplitInfoManager instance, have you invoke Qigsaw#install(...) method?");
             return;
         }
+        //Qigsaw配置文件中的所有split信息
         Collection<SplitInfo> splitInfoList;
         if (splitNames == null) {
             splitInfoList = manager.getAllSplitInfo(getContext());
@@ -172,6 +181,7 @@ final class SplitLoadManagerImpl extends SplitLoadManager {
                     if (libData != null) {
                         splitLibDir = SplitPathManager.require().getSplitLibDir(splitInfo, libData.getAbi());
                     }
+                    //目前没有已native:开头的url，libBuiltIn=false
                     boolean libBuiltIn = splitInfo.isBuiltIn() && masterApkData.getUrl().startsWith(SplitConstants.URL_NATIVE);
                     Intent splitFileIntent = createLastInstalledSplitFileIntent(libBuiltIn, installedMark, splitLibDir, splitInfo);
                     if (splitFileIntent != null) {
@@ -205,20 +215,27 @@ final class SplitLoadManagerImpl extends SplitLoadManager {
      * fast check operation
      */
     private Intent createLastInstalledSplitFileIntent(boolean libBuiltIn, String mark, File splitLibDir, SplitInfo splitInfo) {
+        Log.d(TAG, "createLastInstalledSplitFileIntent: ");
         String splitName = splitInfo.getSplitName();
+        //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}
         File splitDir = SplitPathManager.require().getSplitDir(splitInfo);
+        //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/${mark}
         File markFile = SplitPathManager.require().getSplitMarkFile(splitInfo, mark);
+        //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/${mark}.ov
         File specialMarkFile = SplitPathManager.require().getSplitSpecialMarkFile(splitInfo, mark);
         File splitApk;
         if (libBuiltIn) {
             splitApk = new File(getContext().getApplicationInfo().nativeLibraryDir, System.mapLibraryName(SplitConstants.SPLIT_PREFIX + splitInfo.getSplitName()));
         } else {
+            //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/spliteName-master.apk
             splitApk = new File(splitDir, splitName + "-" + SplitConstants.MASTER + SplitConstants.DOT_APK);
         }
         //check oat file if special mark file is exist.
         if (specialMarkFile.exists() && !markFile.exists()) {
             SplitLog.v(TAG, "In vivo & oppo, we need to check oat file when split is going to be loaded.");
+            //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/oat
             File optimizedDirectory = SplitPathManager.require().getSplitOptDir(splitInfo);
+            //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/oat/spliteName-master.dex
             File oatFile = OEMCompat.getOatFilePath(splitApk, optimizedDirectory);
             if (FileUtil.isLegalFile(oatFile)) {
                 boolean result = OEMCompat.checkOatFile(oatFile);

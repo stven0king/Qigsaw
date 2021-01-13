@@ -24,6 +24,8 @@
 
 package com.iqiyi.android.qigsaw.core.splitinstall;
 
+import android.util.Log;
+
 import com.iqiyi.android.qigsaw.core.splitreport.SplitBriefInfo;
 import com.iqiyi.android.qigsaw.core.splitreport.SplitInstallError;
 import com.iqiyi.android.qigsaw.core.splitreport.SplitInstallReporter;
@@ -34,7 +36,7 @@ import java.util.Collection;
 import java.util.List;
 
 abstract class SplitInstallTask implements Runnable {
-
+    public static final String TAG = "Split:SplitInstallTask";
     private final SplitInstaller installer;
 
     private final Collection<SplitInfo> needUpdateSplits;
@@ -57,6 +59,7 @@ abstract class SplitInstallTask implements Runnable {
         List<SplitBriefInfo> installOKSplits = new ArrayList<>(needUpdateSplits.size());
         List<SplitInstallError> installErrorSplits = new ArrayList<>();
         for (SplitInfo info : needUpdateSplits) {
+            //Split摘要
             SplitBriefInfo briefInfo = new SplitBriefInfo(info.getSplitName(), info.getSplitVersion(), info.isBuiltIn());
             try {
                 long installStart = System.currentTimeMillis();
@@ -95,15 +98,15 @@ abstract class SplitInstallTask implements Runnable {
     }
 
     protected void onPreInstall() {
-
+        Log.d(TAG, "onPreInstall: ");
     }
 
     void onInstallCompleted(List<SplitInstaller.InstallResult> installResults) {
-
+        Log.d(TAG, "onInstallCompleted: ");
     }
 
     void onInstallFailed(List<SplitInstallError> errors) {
-
+        Log.d(TAG, "onInstallFailed: ");
     }
 
 }

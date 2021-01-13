@@ -105,6 +105,11 @@ final class AABExtensionManagerImpl implements AABExtensionManager {
         return splitActivitiesMap;
     }
 
+    /**
+     * 在所有split中寻找name对应的activity
+     * @param name
+     * @return
+     */
     @Override
     public boolean isSplitActivity(String name) {
         if (splitActivities == null) {

@@ -45,6 +45,7 @@ public final class SplitPathManager {
 
     private static final AtomicReference<SplitPathManager> sSplitPathManagerRef = new AtomicReference<>();
 
+    //qigsaw/${qigsawid}
     private final File rootDir;
 
     private final String qigsawId;
@@ -60,6 +61,7 @@ public final class SplitPathManager {
 
     private static SplitPathManager create(Context context) {
         File baseRootDir = context.getDir(SplitConstants.QIGSAW, Context.MODE_PRIVATE);
+        //反射获取QigsawConfig.java中的qigsawId
         String qigsawId = SplitBaseInfoProvider.getQigsawId();
         return new SplitPathManager(baseRootDir, qigsawId);
     }
@@ -71,6 +73,11 @@ public final class SplitPathManager {
         return sSplitPathManagerRef.get();
     }
 
+    /**
+     * Qigsaw/{$gigsawid}/{$splitname}
+     * @param info
+     * @return
+     */
     public File getSplitRootDir(SplitInfo info) {
         File splitRootDir = new File(rootDir, info.getSplitName());
         if (!splitRootDir.exists()) {
@@ -81,6 +88,7 @@ public final class SplitPathManager {
 
     /**
      * get storage path of bundle apk
+     * Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}
      *
      * @param info split info
      */
@@ -92,6 +100,10 @@ public final class SplitPathManager {
         return splitDir;
     }
 
+    /**
+     * qigsaw/${qigsawid}/uninstall
+     * @return
+     */
     public File getUninstallSplitsDir() {
         File uninstallSplitsDir = new File(rootDir, "uninstall");
         if (!uninstallSplitsDir.exists()) {
@@ -102,7 +114,7 @@ public final class SplitPathManager {
 
     /**
      * Get mark file for split, if file is existed, indicate the split has been installed.
-     *
+     * Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/${mark}
      * @param info split info.
      */
     public File getSplitMarkFile(SplitInfo info, String mark) {
@@ -112,7 +124,7 @@ public final class SplitPathManager {
 
     /**
      * Get special mark file for split(), if file is existed, indicate the split has been installed.
-     *
+     * Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/${mark}.ov
      * @param info split info.
      */
     public File getSplitSpecialMarkFile(SplitInfo info, String mark) {
@@ -120,6 +132,11 @@ public final class SplitPathManager {
         return new File(splitDir, mark + ".ov");
     }
 
+    /**
+     * Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/ov.lock
+     * @param info
+     * @return
+     */
     public File getSplitSpecialLockFile(SplitInfo info) {
         File splitDir = getSplitDir(info);
         return new File(splitDir, "ov.lock");
@@ -127,7 +144,7 @@ public final class SplitPathManager {
 
     /**
      * get storage path of split optimized dex
-     *
+     * Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/oat
      * @param info split info
      */
     public File getSplitOptDir(SplitInfo info) {
@@ -143,6 +160,11 @@ public final class SplitPathManager {
         return optDir;
     }
 
+    /**
+     * Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/code_cache
+     * @param info
+     * @return
+     */
     public File getSplitCodeCacheDir(SplitInfo info) {
         File splitDir = getSplitDir(info);
         File codeCacheDir = new File(splitDir, "code_cache");
@@ -154,6 +176,7 @@ public final class SplitPathManager {
 
     /**
      * get storage path of split extracted so
+     * Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/nativeLib/${splitabi}
      */
     public File getSplitLibDir(SplitInfo info, String abi) {
         File libDir = new File(getSplitDir(info), "nativeLib" + File.separator + abi);
@@ -174,6 +197,9 @@ public final class SplitPathManager {
         return tmpDir;
     }
 
+    /**
+     * Delete all file, except the current QigsawId file
+     */
     public void clearCache() {
         File qigsawIdDir = rootDir.getParentFile();
         File[] qigsawIdFiles = qigsawIdDir.listFiles();

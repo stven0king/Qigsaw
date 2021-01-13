@@ -4,12 +4,16 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public class JavaContentProvider extends ContentProvider {
+    private static final String TAG = "Split:JavaContentProvider";
     @Override
     public boolean onCreate() {
+        Log.d(TAG, "onCreate: ");
         return false;
     }
 

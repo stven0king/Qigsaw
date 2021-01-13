@@ -26,6 +26,7 @@ package com.iqiyi.android.qigsaw.core.splitinstall;
 
 import android.content.Context;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -60,7 +61,7 @@ final class SplitDownloadPreprocessor implements Closeable {
     private final FileChannel lockChannel;
 
     private final FileLock cacheLock;
-
+    //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}
     private final File splitDir;
 
     private static final String LOCK_FILENAME = "SplitCopier.lock";
@@ -86,11 +87,13 @@ final class SplitDownloadPreprocessor implements Closeable {
     }
 
     List<SplitFile> load(Context context, SplitInfo info, boolean verifySignature) throws IOException {
+        Log.d("Split", "SplitDownloadPreprocessor:load");
         if (!cacheLock.isValid()) {
             throw new IllegalStateException("FileCheckerAndCopier was closed");
         } else {
             List<SplitFile> downloadedSplitApkFiles = new ArrayList<>();
             for (SplitInfo.ApkData apkData : info.getApkDataList(context)) {
+                //Qigsaw/{$gigsawid}/{$splitname}/${splitversion}/${splitname}-abi.apk
                 SplitFile splitApk = new SplitFile(splitDir, info.getSplitName() + "-" + apkData.getAbi() + SplitConstants.DOT_APK, apkData.getSize());
                 downloadedSplitApkFiles.add(splitApk);
                 if (info.isBuiltIn()) {
@@ -166,6 +169,7 @@ final class SplitDownloadPreprocessor implements Closeable {
     }
 
     private static void copyBuiltInSplit(Context context, String splitName, SplitInfo.ApkData apkData, File splitApk) throws IOException {
+        Log.d("Split", "SplitDownloadPreprocessor:copyBuiltInSplit");
         int numAttempts = 0;
         boolean isCopySuccessful = false;
         File tmpDir = SplitPathManager.require().getSplitTmpDir();

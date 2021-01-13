@@ -27,6 +27,7 @@ package com.iqiyi.android.qigsaw.core.splitload;
 import android.app.Application;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
+import android.util.Log;
 
 import com.iqiyi.android.qigsaw.core.extension.AABExtension;
 import com.iqiyi.android.qigsaw.core.extension.AABExtensionException;
@@ -37,7 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 final class SplitActivator {
-
+    private static final String TAG = "SplitActivator";
     private final AABExtension aabExtension;
 
     private final Context appContext;
@@ -50,6 +51,7 @@ final class SplitActivator {
     }
 
     Application createSplitApplication(ClassLoader classLoader, String splitName) throws SplitLoadException {
+        Log.d(TAG, "createSplitApplication: splitName=" + splitName);
         Application app;
         try {
             app = aabExtension.createApplication(classLoader, splitName);
@@ -76,6 +78,7 @@ final class SplitActivator {
     }
 
     void invokeOnCreateForSplitApplication(Application application) throws SplitLoadException {
+        Log.d(TAG, "invokeOnCreateForSplitApplication: ");
         if (application != null) {
             try {
                 Method method = HiddenApiReflection.findMethod(Application.class, "onCreate");
@@ -90,6 +93,7 @@ final class SplitActivator {
     }
 
     void createAndActivateSplitContentProviders(ClassLoader classLoader, String splitName) throws SplitLoadException {
+        Log.d(TAG, "createAndActivateSplitContentProviders: splitName =" + splitName);
         try {
             aabExtension.createAndActivateSplitProviders(classLoader, splitName);
         } catch (AABExtensionException e) {

@@ -27,6 +27,7 @@ package com.iqiyi.android.qigsaw.core.splitrequest.splitinfo;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.iqiyi.android.qigsaw.core.common.FileUtil;
 import com.iqiyi.android.qigsaw.core.common.ProcessUtil;
@@ -43,15 +44,23 @@ final class SplitInfoVersionManagerImpl implements SplitInfoVersionManager {
     private final static String TAG = "SplitInfoVersionManager";
 
     private String defaultVersion;
-
+    //qigsaw/$qigsawId/split_info_version
     private File rootDir;
 
     private String currentVersion;
 
     private boolean isMainProcess;
 
+    /**
+     * 获取split info
+     * @param context
+     * @param isMainProcess
+     * @return
+     */
     static SplitInfoVersionManager createSplitInfoVersionManager(Context context, boolean isMainProcess) {
+        //QigsawConfig.java中的DEFAULT_SPLIT_INFO_VERSION=1.0.0_1.0.0
         String defaultVersion = SplitBaseInfoProvider.getDefaultSplitInfoVersion();
+        //QigsawConfig.java中的QIGSAW_ID=1.0.0_c40ab5d
         String qigsawId = SplitBaseInfoProvider.getQigsawId();
         return new SplitInfoVersionManagerImpl(context, isMainProcess, defaultVersion, qigsawId);
     }
@@ -63,7 +72,9 @@ final class SplitInfoVersionManagerImpl implements SplitInfoVersionManager {
             String qigsawId) {
         this.defaultVersion = defaultVersion;
         this.isMainProcess = isMainProcess;
+        //qigsaw/$qigsawId
         File baseRootDir = new File(context.getDir(SplitConstants.QIGSAW, Context.MODE_PRIVATE), qigsawId);
+        //qigsaw/$qigsawId/split_info_version
         this.rootDir = new File(baseRootDir, SPLIT_ROOT_DIR_NAME);
         processVersionData(context);
         reportNewSplitInfoVersionLoaded();
@@ -80,6 +91,10 @@ final class SplitInfoVersionManagerImpl implements SplitInfoVersionManager {
         }
     }
 
+    /**
+     * 处理版本信息
+     * @param context
+     */
     private void processVersionData(Context context) {
         SplitInfoVersionData versionData = readVersionData();
         if (versionData == null) {
@@ -116,10 +131,17 @@ final class SplitInfoVersionManagerImpl implements SplitInfoVersionManager {
             return result;
         } catch (IOException e) {
             //
+            Log.d(TAG, "updateVersionData: " + e.toString());
+            e.printStackTrace();
         }
         return false;
     }
 
+    /**
+     * 获取版本数据
+     * rootDir = qigsaw/$qigsawId/split_info_version
+     * @return
+     */
     private SplitInfoVersionData readVersionData() {
         try {
             SplitInfoVersionDataStorage versionDataStorage = new SplitInfoVersionDataStorageImpl(rootDir);
@@ -128,6 +150,8 @@ final class SplitInfoVersionManagerImpl implements SplitInfoVersionManager {
             return versionData;
         } catch (IOException e) {
             //
+            Log.d(TAG, "readVersionData: " + e.toString());
+            e.printStackTrace();
         }
         return null;
     }

@@ -61,6 +61,11 @@ final class ComponentInfoManager {
         return null;
     }
 
+    /**
+     * 获取 com.iqiyi.android.qigsaw.core.extension.ComponentInfo 中对应split的activity
+     * @param splitName
+     * @return
+     */
     static String[] getSplitActivities(String splitName) {
         String fieldName = splitName + ACTIVITIES_SUFFIX;
         try {

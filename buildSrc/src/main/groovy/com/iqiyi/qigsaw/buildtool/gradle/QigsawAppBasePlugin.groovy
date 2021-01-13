@@ -183,6 +183,7 @@ class QigsawAppBasePlugin extends QigsawPlugin {
                 extractTargetFilesFromOldApk.setGroup(QIGSAW)
 
                 //create ${applicationId}QigsawConfig.java
+                //
                 GenerateQigsawConfig generateQigsawConfig = project.tasks.create("generate${baseVariant.name.capitalize()}QigsawConfig", GenerateQigsawConfig)
                 generateQigsawConfig.qigsawMode = isQigsawBuild
                 generateQigsawConfig.qigsawId = qigsawId

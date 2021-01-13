@@ -42,8 +42,10 @@ import androidx.annotation.RestrictTo;
 import android.util.DisplayMetrics;
 import android.view.ContextThemeWrapper;
 
+import com.iqiyi.android.qigsaw.core.common.FileUtil;
 import com.iqiyi.android.qigsaw.core.common.SplitLog;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

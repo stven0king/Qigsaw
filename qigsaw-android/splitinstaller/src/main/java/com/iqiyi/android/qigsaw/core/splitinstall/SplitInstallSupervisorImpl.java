@@ -32,6 +32,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.iqiyi.android.qigsaw.core.common.FileUtil;
 import com.iqiyi.android.qigsaw.core.common.SplitBaseInfoProvider;
@@ -88,10 +89,12 @@ final class SplitInstallSupervisorImpl extends SplitInstallSupervisor {
         this.userDownloader = userDownloader;
         long downloadSizeThreshold = userDownloader.getDownloadSizeThresholdWhenUsingMobileData();
         this.downloadSizeThresholdValue = downloadSizeThreshold < 0 ? Long.MAX_VALUE : downloadSizeThreshold;
+        //aab安装的split names
         this.installedSplitForAAB = new SplitAABInfoProvider(this.appContext).getInstalledSplitsForAAB();
         this.obtainUserConfirmationActivityClass = obtainUserConfirmationActivityClass;
         this.splitInstaller = new SplitInstallerImpl(appContext, verifySignature);
         this.verifySignature = verifySignature;
+        //QigsawConfig.java中的feature names
         String[] dynamicFeaturesArray = SplitBaseInfoProvider.getDynamicFeatures();
         this.dynamicFeatures = dynamicFeaturesArray == null ? null : Arrays.asList(dynamicFeaturesArray);
         if (dynamicFeatures == null) {
@@ -101,13 +104,16 @@ final class SplitInstallSupervisorImpl extends SplitInstallSupervisor {
 
     @Override
     public void startInstall(List<Bundle> moduleNames, Callback callback) {
+        //解析出需要下载的feature module的名字
         List<String> moduleNameList = unBundleModuleNames(moduleNames);
+        //校验aab，校验split配置文件
         int errorCode = onPreInstallSplits(moduleNameList);
         if (errorCode != SplitInstallInternalErrorCode.NO_ERROR) {
             callback.onError(bundleErrorCode(errorCode));
         } else {
             List<SplitInfo> needInstallSplits = getNeed2BeInstalledSplits(moduleNameList);
             //check network status
+            //校验builtin是否为true
             if (!isAllSplitsBuiltIn(needInstallSplits) && !isNetworkAvailable(appContext)) {
                 callback.onError(bundleErrorCode(SplitInstallInternalErrorCode.NETWORK_ERROR));
                 return;
@@ -134,6 +140,12 @@ final class SplitInstallSupervisorImpl extends SplitInstallSupervisor {
         }
     }
 
+    /**
+     * 延期卸载
+     * 将需要卸载的文件记录在qigsaw/${qigsawid}/uninstall/uninstallsplits.info文件中的splitname
+     * @param moduleNames
+     * @param callback
+     */
     @Override
     public void deferredUninstall(List<Bundle> moduleNames, Callback callback) {
         if (!getInstalledSplitForAAB().isEmpty()) {
@@ -267,24 +279,36 @@ final class SplitInstallSupervisorImpl extends SplitInstallSupervisor {
         return SplitInstallInternalErrorCode.NO_ERROR;
     }
 
+    /**
+     * 校验内部的splitinfo
+     * app version
+     * qigsaw id
+     * @return
+     */
     private int checkInternalErrorCode() {
+        //校验split管理类
         SplitInfoManager manager = SplitInfoManagerService.getInstance();
         if (manager == null) {
             SplitLog.w(TAG, "Failed to fetch SplitInfoManager instance!");
             return SplitInstallInternalErrorCode.INTERNAL_ERROR;
         }
+        //校验split集合
         Collection<SplitInfo> allSplits = manager.getAllSplitInfo(appContext);
         if (allSplits == null || allSplits.isEmpty()) {
             SplitLog.w(TAG, "Failed to parse json file of split info!");
             return SplitInstallInternalErrorCode.INTERNAL_ERROR;
         }
+        //更新配置文件中的app version
         String baseAppVersionName = manager.getBaseAppVersionName(appContext);
+        //base包中Qigsaw配置文件的app version
         String versionName = SplitBaseInfoProvider.getVersionName();
         if (TextUtils.isEmpty(baseAppVersionName) || !baseAppVersionName.equals(versionName)) {
             SplitLog.w(TAG, "Failed to match base app version-name excepted base app version %s but %s!", versionName, baseAppVersionName);
             return SplitInstallInternalErrorCode.INTERNAL_ERROR;
         }
+        //获取配置文件中的Qigsaw id
         String qigsawId = manager.getQigsawId(appContext);
+        //获取base包中的 Qigsaw id
         String baseAppQigsawId = SplitBaseInfoProvider.getQigsawId();
         if (TextUtils.isEmpty(qigsawId) || !qigsawId.equals(baseAppQigsawId)) {
             SplitLog.w(TAG, "Failed to match base app qigsaw-version excepted %s but %s!", baseAppQigsawId, qigsawId);
@@ -297,9 +321,15 @@ final class SplitInstallSupervisorImpl extends SplitInstallSupervisor {
         return installedSplitForAAB;
     }
 
+    /**
+     * 获取需要的而且合法的feature name
+     * @param moduleNames
+     * @return
+     */
     private List<SplitInfo> getNeed2BeInstalledSplits(List<String> moduleNames) {
         SplitInfoManager manager = SplitInfoManagerService.getInstance();
         assert manager != null;
+        //从配置文件中过滤split
         List<SplitInfo> needInstallSplitInfos = manager.getSplitInfos(appContext, moduleNames);
         Set<String> dependenciesSplits = new HashSet<>(0);
         for (SplitInfo info : needInstallSplitInfos) {
@@ -307,6 +337,7 @@ final class SplitInstallSupervisorImpl extends SplitInstallSupervisor {
                 dependenciesSplits.addAll(info.getDependencies());
             }
         }
+        //如果feature包有相互依赖，那么需要将依赖的feature包也进行下载
         if (!dependenciesSplits.isEmpty()) {
             dependenciesSplits.removeAll(moduleNames);
             SplitLog.i(TAG, "Add dependencies %s automatically for install splits %s!", dependenciesSplits.toString(), moduleNames.toString());
@@ -373,10 +404,14 @@ final class SplitInstallSupervisorImpl extends SplitInstallSupervisor {
             SplitLog.d(TAG, "totalBytesToDownload: %d, realTotalBytesNeedToDownload: %d ", totalBytesToDownload, realTotalBytesNeedToDownload);
             sessionState.setTotalBytesToDownload(totalBytesToDownload);
             StartDownloadCallback downloadCallback = new StartDownloadCallback(splitInstaller, sessionId, sessionManager, needInstallSplits);
+            //如果实际需要下载的资源大小为0，那么标识本次不需要进行文件下载
             if (realTotalBytesNeedToDownload <= 0) {
                 SplitLog.d(TAG, "Splits have been downloaded, install them directly!");
                 downloadCallback.onCompleted();
             } else {
+                //如果当前是移动网络，需要下载的文件大小需要进行用户确认
+                //发送广播，播放当前的sessionState
+                //开始下载
                 if (isMobileAvailable(appContext)) {
                     if (realTotalBytesNeedToDownload > downloadSizeThresholdValue) {
                         startUserConfirmationActivity(sessionState, realTotalBytesNeedToDownload, downloadRequests);
@@ -471,14 +506,24 @@ final class SplitInstallSupervisorImpl extends SplitInstallSupervisor {
         return requests;
     }
 
+    /**
+     * 加载下载地址为asset目录的apk，并进行校验
+     * 返回所有下载文件的大小总和，以及需要下载的文件大小总和
+     * @param splitInfoList
+     * @return
+     * @throws IOException
+     */
     private long[] onPreDownloadSplits(Collection<SplitInfo> splitInfoList) throws IOException {
+        Log.d("Split", "SplitInstallSupervisorImpl:onPreDownloadSplits");
         long totalBytesToDownload = 0L;
         long realTotalBytesNeedToDownload = 0L;
         for (SplitInfo splitInfo : splitInfoList) {
+            //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}
             File splitDir = SplitPathManager.require().getSplitDir(splitInfo);
             SplitDownloadPreprocessor processor = new SplitDownloadPreprocessor(splitDir);
             List<SplitDownloadPreprocessor.SplitFile> splitApkList;
             try {
+                //加载下载地址为asset目录的apk，并进行校验
                 splitApkList = processor.load(appContext, splitInfo, verifySignature);
             } finally {
                 FileUtil.closeQuietly(processor);

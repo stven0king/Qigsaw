@@ -27,6 +27,7 @@ package com.iqiyi.android.qigsaw.core.splitinstall;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.SparseArray;
 
 import java.util.ArrayList;
@@ -130,8 +131,10 @@ final class SplitInstallSessionManagerImpl implements SplitInstallSessionManager
         }
     }
 
+    //SplitInstallListenerRegistry
     @Override
     public void emitSessionState(SplitInstallInternalSessionState sessionState) {
+        Log.d("Split", "SplitInstallSessionManagerImpl:emitSessionState");
         Bundle bundle = SplitInstallInternalSessionState.transform2Bundle(sessionState);
         Intent intent = new Intent();
         intent.putExtra("session_state", bundle);

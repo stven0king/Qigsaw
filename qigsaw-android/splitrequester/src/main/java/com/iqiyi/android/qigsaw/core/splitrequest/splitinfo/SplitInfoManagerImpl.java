@@ -141,6 +141,11 @@ final class SplitInfoManagerImpl implements SplitInfoManager {
         return null;
     }
 
+    /**
+     * 获取json配置中所有的split信息
+     * @param context get all split info
+     * @return
+     */
     @Override
     public Collection<SplitInfo> getAllSplitInfo(Context context) {
         SplitDetails details = getOrCreateSplitDetails(context);
@@ -150,6 +155,11 @@ final class SplitInfoManagerImpl implements SplitInfoManager {
         return null;
     }
 
+    /**
+     * 更具json文件路径创建SplitDetails实例
+     * @param newSplitInfoPath file path of new split info
+     * @return
+     */
     @Override
     @Nullable
     public SplitDetails createSplitDetailsForJsonFile(@NonNull String newSplitInfoPath) {
@@ -172,6 +182,12 @@ final class SplitInfoManagerImpl implements SplitInfoManager {
         return versionManager.updateVersion(context, newSplitInfoVersion, newSplitInfoFile);
     }
 
+    /**
+     * 用asset下默认的Qigsaw配置文件生成SplitDetails对象
+     * @param context
+     * @param defaultVersion
+     * @return
+     */
     private SplitDetails createSplitDetailsForDefaultVersion(Context context, String defaultVersion) {
         try {
             String defaultSplitInfoFileName = SplitConstants.QIGSAW + "/" + SplitConstants.QIGSAW_PREFIX + defaultVersion + SplitConstants.DOT_JSON;
@@ -199,6 +215,11 @@ final class SplitInfoManagerImpl implements SplitInfoManager {
         return null;
     }
 
+    /**
+     * 获取新版本的Qigsaw json文件对象，如果没有那么获取默认的asset目录下的json文件对象
+     * @param context
+     * @return
+     */
     private synchronized SplitDetails getOrCreateSplitDetails(Context context) {
         SplitInfoVersionManager versionManager = getSplitInfoVersionManager();
         SplitDetails details = getSplitDetails();
@@ -222,6 +243,14 @@ final class SplitInfoManagerImpl implements SplitInfoManager {
         return details;
     }
 
+    /**
+     * 解析出asset下默认的json文件内容
+     * @param context
+     * @param fileName
+     * @return
+     * @throws IOException
+     * @throws JSONException
+     */
     private static SplitDetails parseSplitContentsForDefaultVersion(Context context, String fileName)
             throws IOException, JSONException {
         String content = readInputStreamContent(createInputStreamFromAssets(context, fileName));
@@ -265,6 +294,12 @@ final class SplitInfoManagerImpl implements SplitInfoManager {
         return stringBuffer.toString();
     }
 
+    /**
+     * 解析 qigsaw_1.0_1.0.0.json文件
+     * @param content
+     * @return
+     * @throws JSONException
+     */
     private static SplitDetails parseSplitsContent(String content) throws JSONException {
         if (content == null) {
             return null;

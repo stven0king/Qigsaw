@@ -39,6 +39,10 @@ public class OEMCompat {
 
     private static final String TAG = "Split.OEMCompat";
 
+    /**
+     * special manufacture contain vivo 、oppo and EEBBK
+     * @return
+     */
     public static boolean isSpecialManufacturer() {
         return "vivo".equalsIgnoreCase(Build.MANUFACTURER) || "oppo".equalsIgnoreCase(Build.MANUFACTURER) || "EEBBK".equalsIgnoreCase(Build.MANUFACTURER);
     }
@@ -49,6 +53,7 @@ public class OEMCompat {
     }
 
     /**
+     * oat file with dex file name
      * Only work from OS.Version L to N
      */
     public static File getOatFilePath(@NonNull File sourceApk, @NonNull File optimizedDirectory) {

@@ -25,6 +25,7 @@
 package com.iqiyi.android.qigsaw.core.splitload;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.iqiyi.android.qigsaw.core.common.SplitLog;
 import com.iqiyi.android.qigsaw.core.extension.AABExtension;
@@ -52,6 +53,7 @@ final class DefaultClassNotFoundInterceptor implements ClassNotFoundInterceptor 
 
     @Override
     public Class<?> findClass(String name) {
+        Log.d("Split", "DefaultClassNotFoundInterceptor:findClass:" + name);
         if (SplitLoadManagerService.hasInstance()) {
             if (splitLoadMode == SplitLoad.MULTIPLE_CLASSLOADER) {
                 return onClassNotFound(name);
@@ -69,6 +71,8 @@ final class DefaultClassNotFoundInterceptor implements ClassNotFoundInterceptor 
         }
         Class<?> fakeComponent = AABExtension.getInstance().getFakeComponent(name);
         if (fakeComponent != null || isSplitEntryFragments(name)) {
+            Log.d("Split", "onClassNotFound:" + fakeComponent.getName());
+            //加载split中的dex
             SplitLoadManagerService.getInstance().loadInstalledSplits();
             ret = findClassInSplits(name);
             if (ret != null) {
@@ -97,6 +101,7 @@ final class DefaultClassNotFoundInterceptor implements ClassNotFoundInterceptor 
     private Class<?> onClassNotFound2(String name) {
         Class<?> fakeComponent = AABExtension.getInstance().getFakeComponent(name);
         if (fakeComponent != null || isSplitEntryFragments(name)) {
+            //加载split中的dex
             SplitLoadManagerService.getInstance().loadInstalledSplits();
             try {
                 return originClassLoader.loadClass(name);

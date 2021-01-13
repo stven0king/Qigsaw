@@ -70,6 +70,12 @@ final class SplitMultiDexExtractor implements Closeable {
     private final FileChannel lockChannel;
     private final FileLock cacheLock;
 
+    /**
+     *
+     * @param sourceApk Qigsaw / {$ gigsawid} / {$ splitname} / {$ {splitversion}} / split.apk
+     * @param dexDir Qigsaw / {$ gigsawid} / {$ splitname} / {$ {splitversion}} / code_cache
+     * @throws IOException
+     */
     SplitMultiDexExtractor(File sourceApk, File dexDir) throws IOException {
         SplitLog.i(TAG, "SplitMultiDexExtractor(" + sourceApk.getPath() + ", " + dexDir.getPath() + ")");
         this.sourceApk = sourceApk;
@@ -93,6 +99,14 @@ final class SplitMultiDexExtractor implements Closeable {
         }
     }
 
+    /**
+     *
+     * @param context
+     * @param prefsKeyPrefix splitName@splitUpdateVersion@splitVersion
+     * @param forceReload false
+     * @return
+     * @throws IOException
+     */
     List<? extends File> load(Context context, String prefsKeyPrefix, boolean forceReload) throws IOException {
         SplitLog.i(TAG, "SplitMultiDexExtractor.load(" + this.sourceApk.getPath() + ", " + forceReload + ", " + prefsKeyPrefix + ")");
         if (!this.cacheLock.isValid()) {
@@ -177,13 +191,21 @@ final class SplitMultiDexExtractor implements Closeable {
     }
 
 
+    /**
+     * traverse generate dex zip file
+     * split.apk.classesX.zip
+     * @return
+     * @throws IOException
+     */
     private List<ExtractedDex> performExtractions() throws IOException {
+        //split.apk.classes
         String extractedFilePrefix = this.sourceApk.getName() + EXTRACTED_NAME_EXT;
         this.clearDexDir();
         List<ExtractedDex> files = new ArrayList<>();
         ZipFile apk = new ZipFile(this.sourceApk);
         try {
             int secondaryNumber = 2;
+            //Traverse dex file
             for (ZipEntry dexFile = apk.getEntry(DEX_PREFIX + secondaryNumber + SplitConstants.DOT_DEX); dexFile != null; dexFile = apk.getEntry(DEX_PREFIX + secondaryNumber + SplitConstants.DOT_DEX)) {
                 String fileName = extractedFilePrefix + secondaryNumber + SplitConstants.DOT_ZIP;
                 SplitMultiDexExtractor.ExtractedDex extractedFile = new SplitMultiDexExtractor.ExtractedDex(this.dexDir, fileName);

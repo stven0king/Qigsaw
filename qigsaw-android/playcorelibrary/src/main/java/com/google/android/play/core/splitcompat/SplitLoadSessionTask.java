@@ -1,6 +1,7 @@
 package com.google.android.play.core.splitcompat;
 
 import android.content.Intent;
+import android.util.Log;
 
 import com.google.android.play.core.splitinstall.SplitSessionStatusChanger;
 import com.google.android.play.core.splitinstall.model.SplitInstallErrorCode;
@@ -24,6 +25,7 @@ final class SplitLoadSessionTask implements Runnable, OnSplitLoadListener {
 
     @Override
     public void run() {
+        Log.d("Split", "SplitLoadSessionTask:run");
         if (splitFileIntents == null) {
             onFailed(SplitInstallErrorCode.INTERNAL_ERROR);
             return;

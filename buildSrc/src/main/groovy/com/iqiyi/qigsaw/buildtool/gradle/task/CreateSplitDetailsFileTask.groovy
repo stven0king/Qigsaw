@@ -372,7 +372,7 @@ class CreateSplitDetailsFileTask extends ProcessOldOutputsBaseTask {
                 }
             } else {
                 SplitLogger.e("SplitApkUploader has not been implemented, just make ${info.splitName} built-in")
-                info.builtIn = true
+                //info.builtIn = true
             }
         }
     }

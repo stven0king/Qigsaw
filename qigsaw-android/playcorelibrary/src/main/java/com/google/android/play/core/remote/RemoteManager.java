@@ -36,7 +36,8 @@ public final class RemoteManager<T extends IInterface> {
     boolean mBindingService;
 
     final List<RemoteTask> mPendingTasks = new ArrayList<>();
-
+    //com.iqiyi.android.play.core.splitinstall.BIND_SPLIT_INSTALL_SERVICE
+    //SplitInstallService.java
     private final Intent mSplitInstallServiceIntent;
 
     final IRemote<T> mRemote;

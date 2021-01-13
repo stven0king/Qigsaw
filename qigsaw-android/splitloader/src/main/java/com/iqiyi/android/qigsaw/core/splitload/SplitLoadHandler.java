@@ -29,10 +29,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 
+import com.iqiyi.android.qigsaw.core.common.FileUtil;
 import com.iqiyi.android.qigsaw.core.common.SplitConstants;
 import com.iqiyi.android.qigsaw.core.common.SplitLog;
 import com.iqiyi.android.qigsaw.core.splitreport.SplitBriefInfo;
@@ -86,6 +88,7 @@ final class SplitLoadHandler {
     }
 
     private void loadSplits(final OnSplitLoadFinishListener loadFinishListener) {
+        Log.d(TAG, "loadSplits: ");
         long totalLoadStart = System.currentTimeMillis();
         Set<Split> loadedSpits = new HashSet<>();
         List<SplitLoadError> loadErrorInfos = new ArrayList<>(0);
@@ -105,12 +108,15 @@ final class SplitLoadHandler {
                 continue;
             }
             String splitApkPath = splitFileIntent.getStringExtra(SplitConstants.KEY_APK);
+            Log.d(TAG, "loadSplits: splitApkPath = " + splitApkPath);
+            //FileUtil.printFile(new File(splitApkPath).getParentFile());
             if (splitApkPath == null) {
                 SplitLog.w(TAG, "Failed to read split %s apk path", splitName);
                 loadErrorInfos.add(new SplitLoadError(splitBriefInfo, SplitLoadError.INTERNAL_ERROR, new Exception("split apk path " + splitName + " is missing!")));
                 continue;
             }
             String dexOptPath = splitFileIntent.getStringExtra(SplitConstants.KEY_DEX_OPT_DIR);
+            Log.d(TAG, "loadSplits: dexOptPath = " + dexOptPath);
             //check opt-path for split.
             if (info.hasDex() && dexOptPath == null) {
                 SplitLog.w(TAG, "Failed to %s get dex-opt-dir", splitName);
@@ -119,6 +125,7 @@ final class SplitLoadHandler {
             }
             //check native library path for split.
             String nativeLibPath = splitFileIntent.getStringExtra(SplitConstants.KEY_NATIVE_LIB_DIR);
+            Log.d(TAG, "loadSplits: nativeLibPath = " + nativeLibPath);
             try {
                 SplitInfo.LibData libData = info.getPrimaryLibData(getContext());
                 if (libData != null && nativeLibPath == null) {
@@ -167,6 +174,7 @@ final class SplitLoadHandler {
             }
             loadOKInfos.add(splitBriefInfo.setTimeCost(System.currentTimeMillis() - loadStart));
             loadedSpits.add(new Split(splitName, splitApkPath));
+            FileUtil.printFile(splitDir);
         }
         loadManager.putSplits(loadedSpits);
         if (loadFinishListener != null) {
@@ -174,6 +182,14 @@ final class SplitLoadHandler {
         }
     }
 
+    /**
+     * 激活split
+     * @param splitName
+     * @param splitApkPath
+     * @param application
+     * @param classLoader
+     * @throws SplitLoadException
+     */
     private void activateSplit(String splitName, String splitApkPath, Application application, ClassLoader classLoader) throws SplitLoadException {
         try {
             splitLoader.loadResources(splitApkPath);

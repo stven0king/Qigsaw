@@ -5,12 +5,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.google.android.play.core.listener.StateUpdateListenerRegister;
 import com.google.android.play.core.splitcompat.util.PlayCore;
 
 final class SplitInstallListenerRegistry extends StateUpdateListenerRegister<SplitInstallSessionState> {
-
+    private final static String TAG = "SplitInstallListenerRegistry";
     final Handler mMainHandler;
 
     private final SplitSessionLoader mLoader;
@@ -29,8 +30,10 @@ final class SplitInstallListenerRegistry extends StateUpdateListenerRegister<Spl
     protected void onReceived(Intent intent) {
         SplitInstallSessionState sessionState = SplitInstallSessionState.createFrom(intent.getBundleExtra("session_state"));
         this.playCore.info("ListenerRegistryBroadcastReceiver.onReceive: %s", sessionState);
+        //SplitInstallInternalSessionStatus.POST_INSTALLED=10
         if (sessionState.status() == 10 && mLoader != null) {
-            mLoader.load(sessionState.splitFileIntents, new SplitSessionStatusChanger(this, sessionState));
+            Log.d(TAG, "onReceived: mLoader.load");
+            //mLoader.load(sessionState.splitFileIntents, new SplitSessionStatusChanger(this, sessionState));
         } else {
             notifyListeners(sessionState);
         }

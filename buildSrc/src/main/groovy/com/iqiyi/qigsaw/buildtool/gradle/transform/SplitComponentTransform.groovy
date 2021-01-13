@@ -172,6 +172,7 @@ class SplitComponentTransform extends SimpleClassCreatorTransform {
                         createSimpleClass(dest, providerClassName, "com.iqiyi.android.qigsaw.core.splitload.SplitContentProvider", null)
                     }
                 } else {
+                    //activity逗号分割
                     cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL + Opcodes.ACC_STATIC,
                             name, "Ljava/lang/String;", null,
                             (value as String[]).join(",")).visitEnd()

@@ -2,6 +2,7 @@ package com.iqiyi.qigsaw.sample;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Color;
@@ -27,7 +28,10 @@ import com.google.android.play.core.tasks.OnCompleteListener;
 import com.google.android.play.core.tasks.OnFailureListener;
 import com.google.android.play.core.tasks.OnSuccessListener;
 import com.google.android.play.core.tasks.Task;
+import com.iqiyi.android.qigsaw.core.common.FileUtil;
+import com.iqiyi.android.qigsaw.core.common.SplitConstants;
 
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,7 +94,14 @@ public class QigsawInstaller extends Activity {
                         onInstalling();
                         break;
                     case SplitInstallSessionStatus.INSTALLED:
-                        onInstalled();
+                        getWindow().getDecorView().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                FileUtil.printFile(new File(getDir(SplitConstants.QIGSAW, Context.MODE_PRIVATE), "1.0.0_c40ab5d/java/1.1@1"));
+                            }
+                        //}, 1);//不可以生成odex，vdex
+                        }, 100);
+                        //onInstalled();
                         break;
                     case SplitInstallSessionStatus.FAILED:
                         onFailed();

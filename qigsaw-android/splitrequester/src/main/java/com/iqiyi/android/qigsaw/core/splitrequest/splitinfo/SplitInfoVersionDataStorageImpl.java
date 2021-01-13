@@ -58,13 +58,16 @@ final class SplitInfoVersionDataStorageImpl implements SplitInfoVersionDataStora
     private final FileLock cacheLock;
 
     SplitInfoVersionDataStorageImpl(File rootDir) throws IOException {
+        //qigsaw/$qigsawId/split_info_version/version.info
         this.versionDataFile = new File(rootDir, VERSION_DATA_NAME);
+        //qigsaw/$qigsawId/split_info_version/version.lock
         File lockFile = new File(rootDir, VERSION_DATA_LOCK_NAME);
         this.lockRaf = new RandomAccessFile(lockFile, "rw");
         try {
             this.lockChannel = this.lockRaf.getChannel();
             try {
                 SplitLog.i(TAG, "Blocking on lock " + lockFile.getPath());
+                //给文件上锁qigsaw/$qigsawId/split_info_version/version.lock
                 this.cacheLock = this.lockChannel.lock();
             } catch (RuntimeException | Error | IOException var5) {
                 FileUtil.closeQuietly(this.lockChannel);
@@ -72,6 +75,7 @@ final class SplitInfoVersionDataStorageImpl implements SplitInfoVersionDataStora
             }
             SplitLog.i(TAG, lockFile.getPath() + " locked");
         } catch (RuntimeException | Error | IOException var6) {
+            SplitLog.i(TAG, " SplitInfoVersionDataStorageImpl error");
             FileUtil.closeQuietly(this.lockRaf);
             throw var6;
         }
@@ -105,11 +109,14 @@ final class SplitInfoVersionDataStorageImpl implements SplitInfoVersionDataStora
         cacheLock.release();
     }
 
+
+    //qigsaw/$qigsawId/split_info_version/version.info
     private static SplitInfoVersionData readVersionDataProperties(File versionDataFile) {
         boolean isReadPatchSuccessful = false;
         int numAttempts = 0;
         String oldVer = null;
         String newVer = null;
+        //循环三次尝试获取新老版本号
         while (numAttempts < SplitConstants.MAX_RETRY_ATTEMPTS && !isReadPatchSuccessful) {
             numAttempts++;
             Properties properties = new Properties();

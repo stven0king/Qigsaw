@@ -57,10 +57,13 @@ final class SplitDeleteRedundantVersionTask implements Runnable {
     public void run() {
         if (allSplits != null) {
             for (SplitInfo splitInfo : allSplits) {
+                //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}
                 File splitDir = SplitPathManager.require().getSplitDir(splitInfo);
+                //Qigsaw/{$gigsawid}/{$splitname}
                 File splitRootDir = SplitPathManager.require().getSplitRootDir(splitInfo);
                 try {
                     String installedMark = splitInfo.obtainInstalledMark(appContext);
+                    //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}/${mark}
                     File installedMarkFile = SplitPathManager.require().getSplitMarkFile(splitInfo, installedMark);
                     deleteRedundantSplitVersionDirs(splitDir, splitRootDir, installedMarkFile);
                 } catch (IOException ignored) {
@@ -70,11 +73,19 @@ final class SplitDeleteRedundantVersionTask implements Runnable {
         }
     }
 
+    /**
+     * 保留最新的split更新包，其他的删除
+     * @param currentSplitVersionDir //Qigsaw/{$gigsawid}/{$splitname}/{${splitversion}}
+     * @param splitRootDir          //Qigsaw/{$gigsawid}/{$splitname}
+     * @param installedMarkFile
+     */
     private void deleteRedundantSplitVersionDirs(final File currentSplitVersionDir, final File splitRootDir, final File installedMarkFile) {
         final String splitName = splitRootDir.getName();
+        //获取split对应的所有version进行过滤
         File[] files = splitRootDir.listFiles(new FileFilter() {
             @Override
             public boolean accept(File pathname) {
+                //如果当前文件是文件夹，而且不是当前split version的文件夹，而且split version对应的apk已经完成install
                 if (pathname.isDirectory() && !pathname.equals(currentSplitVersionDir)) {
                     SplitLog.i(TAG, "Split %s version %s has been installed!", splitName, pathname.getName());
                     return installedMarkFile.exists();
@@ -83,6 +94,7 @@ final class SplitDeleteRedundantVersionTask implements Runnable {
             }
         });
         if (files != null && files.length > MAX_SPLIT_CACHE_SIZE) {
+            //按照修改时间顺，从新到旧
             Arrays.sort(files, new Comparator<File>() {
                 @Override
                 public int compare(File o1, File o2) {
@@ -95,6 +107,7 @@ final class SplitDeleteRedundantVersionTask implements Runnable {
                     }
                 }
             });
+            //Delete all from the second, keep only one split version cache file
             for (int i = MAX_SPLIT_CACHE_SIZE; i < files.length; i++) {
                 SplitLog.i(TAG, "Split %s version %s is redundant, so we try to delete it", splitName, files[i].getName());
                 FileUtil.deleteDir(files[i]);

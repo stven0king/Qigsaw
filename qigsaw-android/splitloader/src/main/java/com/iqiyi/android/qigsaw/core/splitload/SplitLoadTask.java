@@ -27,6 +27,7 @@ package com.iqiyi.android.qigsaw.core.splitload;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -74,6 +75,7 @@ abstract class SplitLoadTask implements SplitLoaderWrapper, Runnable, SplitLoadH
 
     @Override
     public final void run() {
+        Log.d("Split", "SplitLoadTask:run");
         if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
             loadHandler.loadSplitsSync(this);
         } else {

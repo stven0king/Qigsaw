@@ -36,6 +36,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 删除split模块信息,path:Qigsaw/{$gigsawid}/{$splitname}
+ * 同步删除卸载模块信息配置文件,path:qigsaw/${qigsawid}/uninstall/uninstallsplits.info
+ */
 final class SplitStartUninstallTask implements Runnable {
 
     private static final String TAG = "SplitStartUninstallTask";

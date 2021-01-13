@@ -28,6 +28,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
@@ -139,6 +140,7 @@ public abstract class SplitLoadManager {
     }
 
     final void putSplits(Collection<Split> splits) {
+        Log.d("Split", "SplitLoadManager:putSplits");
         loadedSplits.addAll(splits);
     }
 

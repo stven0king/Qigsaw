@@ -25,15 +25,18 @@
 package com.iqiyi.android.qigsaw.core.splitload;
 
 import android.content.Context;
+import android.util.Log;
+
 import androidx.annotation.Nullable;
 
+import com.iqiyi.android.qigsaw.core.common.FileUtil;
 import com.iqiyi.android.qigsaw.core.splitreport.SplitLoadError;
 
 import java.io.File;
 import java.util.List;
 
 final class SplitLoaderImpl extends SplitLoader {
-
+    private static final String TAG = "SplitLoaderImpl";
     SplitLoaderImpl(Context context) {
         super(context);
     }
@@ -45,6 +48,8 @@ final class SplitLoaderImpl extends SplitLoader {
                                  @Nullable File librarySearchPath,
                                  @Nullable List<String> dependencies) throws SplitLoadException {
         try {
+            Log.d(TAG, "loadCode: ");
+            FileUtil.printFile(optimizedDirectory);
             return SplitDexClassLoader.create(moduleNames, dexPaths, optimizedDirectory, librarySearchPath, dependencies);
         } catch (Throwable e) {
             throw new SplitLoadException(SplitLoadError.CREATE_CLASSLOADER_FAILED, e);

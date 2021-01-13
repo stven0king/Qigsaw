@@ -26,6 +26,7 @@ package com.iqiyi.android.qigsaw.core.extension;
 
 import android.app.Application;
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
@@ -116,14 +117,17 @@ public class AABExtension {
      * @param splitName   name of split.
      */
     public Application createApplication(ClassLoader classLoader, String splitName) throws AABExtensionException {
+        Log.d(TAG, "createApplication: splitName = " + splitName);
         return extensionManager.createApplication(classLoader, splitName);
     }
 
     public void activeApplication(Application splitApplication, Context appContext) throws AABExtensionException {
+        Log.d(TAG, "activeApplication: ");
         extensionManager.activeApplication(splitApplication, appContext);
     }
 
     public void createAndActivateSplitProviders(ClassLoader classLoader, String splitName) throws AABExtensionException {
+        Log.d(TAG, "createAndActivateSplitProviders: splitName = " + splitName);
         List<ContentProviderProxy> providerProxies = sSplitContentProviderMap.get(splitName);
         if (providerProxies != null) {
             for (ContentProviderProxy providerProxy : providerProxies) {
@@ -133,6 +137,7 @@ public class AABExtension {
     }
 
     void put(String splitName, ContentProviderProxy providerProxy) {
+        Log.d(TAG, "put: splitName=" + splitName);
         List<ContentProviderProxy> providerProxies = sSplitContentProviderMap.get(splitName);
         if (providerProxies == null) {
             providerProxies = new ArrayList<>();
