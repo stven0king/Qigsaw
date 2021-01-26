@@ -143,9 +143,6 @@ final class SplitInstallerImpl extends SplitInstaller {
                     if (!markFile.exists()) {
                         try {
                             new DexClassLoader(dexPath, optimizedDirectory.getAbsolutePath(), librarySearchPath, SplitInstallerImpl.class.getClassLoader());
-                            //test generate <split-abi.odex> and <split-abi.vdex> file
-                            //Thread.sleep(1000);
-                            //FileUtil.printFile(optimizedDirectory);
                         } catch (Throwable error) {
                             throw new InstallException(
                                     SplitInstallError.CLASSLOADER_CREATE_FAILED,

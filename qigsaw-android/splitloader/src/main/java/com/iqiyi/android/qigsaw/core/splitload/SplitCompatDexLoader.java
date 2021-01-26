@@ -81,6 +81,8 @@ final class SplitCompatDexLoader {
                 }
 
             } else {
+                //test generate <split-abi.odex> and <split-abi.vdex> file
+                //<split-abi.odex> and <split-abi.vdex> file will not be generated immediately
                 FileUtil.printFile(optimizedDirectory);
             }
         }

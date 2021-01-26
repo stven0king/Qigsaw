@@ -33,7 +33,7 @@ final class SplitInstallListenerRegistry extends StateUpdateListenerRegister<Spl
         //SplitInstallInternalSessionStatus.POST_INSTALLED=10
         if (sessionState.status() == 10 && mLoader != null) {
             Log.d(TAG, "onReceived: mLoader.load");
-            //mLoader.load(sessionState.splitFileIntents, new SplitSessionStatusChanger(this, sessionState));
+            mLoader.load(sessionState.splitFileIntents, new SplitSessionStatusChanger(this, sessionState));
         } else {
             notifyListeners(sessionState);
         }

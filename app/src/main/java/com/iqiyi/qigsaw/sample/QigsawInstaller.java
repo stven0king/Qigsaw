@@ -97,11 +97,11 @@ public class QigsawInstaller extends Activity {
                         getWindow().getDecorView().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                FileUtil.printFile(new File(getDir(SplitConstants.QIGSAW, Context.MODE_PRIVATE), "1.0.0_c40ab5d/java/1.1@1"));
+                                FileUtil.printFile(new File(getDir(SplitConstants.QIGSAW, Context.MODE_PRIVATE), "1.0.0_680e747/java/1.1@1"));
                             }
-                        //}, 1);//不可以生成odex，vdex
+                        //}, 1);//目前没有生成odex，vdex文件
                         }, 100);
-                        //onInstalled();
+                        onInstalled();
                         break;
                     case SplitInstallSessionStatus.FAILED:
                         onFailed();
